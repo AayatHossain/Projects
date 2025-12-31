@@ -1,4 +1,4 @@
-from databse import Base
+from database import Base
 from sqlalchemy import Column, String, Integer, Boolean, true
 
 
@@ -11,4 +11,4 @@ class Todos(Base):
     priority = Column(Integer)
     complete = Column(Boolean)
 
-    
+
