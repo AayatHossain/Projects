@@ -1,11 +1,8 @@
 from fastapi import FastAPI, Depends, Path, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import Column
 from sqlalchemy.orm import Session
 from typing import Annotated
-
 from starlette import status
-
 import models
 from models import Todo
 from database import engine, Sessionlocal
@@ -66,3 +63,14 @@ async def update_todo( db: db_dependency,
 
     else :
         raise HTTPException(detail="No id found", status_code=404)
+
+
+@app.delete("/todo/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_todo(db: db_dependency ,todo_id : int = Path(gt = 0)):
+    todo1 = db.query(Todo).filter(Todo.id==todo_id).first()
+    if todo1 is None:
+        raise HTTPException(detail = "No id found, can't delete", status_code=404)
+    db.query(Todo).filter(Todo.id == todo_id).delete()
+    db.commit()
+
+
