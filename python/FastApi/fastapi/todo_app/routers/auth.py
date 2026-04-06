@@ -9,7 +9,10 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 
-router = APIRouter()
+router = APIRouter(
+    prefix = "/auth",
+    tags = ["auth"]
+)
 bcrypt_context =  CryptContext(schemes=['bcrypt'], deprecated = 'auto')
 
 class UserRequest(BaseModel):
@@ -28,7 +31,7 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-@router.post("/auth")
+@router.post("/")
 async def create_user(db : db_dependency, user: UserRequest):
     new_user = User(
 
@@ -43,7 +46,7 @@ async def create_user(db : db_dependency, user: UserRequest):
     db.add(new_user)
     db.commit()
 
-@router.get("/auth")
+@router.get("/")
 async def get_users(db : db_dependency):
     return db.query(User).all()
 
@@ -82,7 +85,7 @@ async def login_for_token(form: Annotated[OAuth2PasswordRequestForm, Depends()],
         "token_type" : "bearer"
     }
 
-oauth2_bearer = OAuth2PasswordBearer('token')
+oauth2_bearer = OAuth2PasswordBearer("/auth/token")
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -93,3 +96,11 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         return {"username" : username, "user_id" : user_id}
     except JWTError:
         raise HTTPException(status_code=401, detail="invalid credentials")
+
+@router.delete("/{user_id}")
+async def delete_user(db: db_dependency,user_id: int):
+    user = db.query(User).filter(User.id==user_id).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail = "id not found")
+    db.delete(user)
+    db.commit()
