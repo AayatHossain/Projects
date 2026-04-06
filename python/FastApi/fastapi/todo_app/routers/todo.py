@@ -28,9 +28,8 @@ class TodoRequest(BaseModel):
 
 
 @router.get("/todo")
-async def get_todo(db : db_dependency):
-    todo1 = db.query(Todo).all()
-    return todo1
+async def get_todo(db : db_dependency, user:user_dependency):
+    return db.query(Todo).filter(Todo.owner_id==user.get("user_id")).all()
 
 @router.get("/todo/{todo_id}", status_code=status.HTTP_200_OK)
 async def get_by_id(user: user_dependency,
@@ -59,7 +58,7 @@ async def update_todo( db: db_dependency,
     todo1 = (db.query(Todo).filter(Todo.id==todo_id).
              filter(Todo.owner_id==user.get("user_id")).first())
     if todo1 is not None:
-        todo1.id = todo_id
+
         todo1.title = todoreq.title
         todo1.description = todoreq.description
         todo1.priority = todoreq.priority
@@ -73,11 +72,14 @@ async def update_todo( db: db_dependency,
 
 
 @router.delete("/todo/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_todo(db: db_dependency ,todo_id : int = Path(gt = 0)):
-    todo1 = db.query(Todo).filter(Todo.id==todo_id).first()
+async def delete_todo(db: db_dependency ,
+                      user: user_dependency,
+                      todo_id : int = Path(gt = 0)):
+    todo1 = (db.query(Todo).filter(Todo.id==todo_id)
+             .filter(Todo.owner_id==user.get("user_id")).first())
     if todo1 is None:
         raise HTTPException(detail = "No id found, can't delete", status_code=404)
-    db.query(Todo).filter(Todo.id == todo_id).delete()
+    db.delete(todo1)
     db.commit()
 
 
