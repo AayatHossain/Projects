@@ -46,10 +46,6 @@ async def create_user(db : db_dependency, user: UserRequest):
     db.add(new_user)
     db.commit()
 
-@router.get("/")
-async def get_users(db : db_dependency):
-    return db.query(User).all()
-
 
 def authentication(username: str, password: str, db: db_dependency):
     user = db.query(User).filter(User.username==username).first()
@@ -97,11 +93,3 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         return {"username" : username, "user_id" : user_id, 'user_role':user_role}
     except JWTError:
         raise HTTPException(status_code=401, detail="invalid credentials")
-
-@router.delete("/{user_id}")
-async def delete_user(db: db_dependency,user_id: int):
-    user = db.query(User).filter(User.id==user_id).first()
-    if user is None:
-        raise HTTPException(status_code=401, detail = "id not found")
-    db.delete(user)
-    db.commit()
