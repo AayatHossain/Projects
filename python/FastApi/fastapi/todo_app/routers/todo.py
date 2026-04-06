@@ -33,26 +33,31 @@ async def get_todo(db : db_dependency):
     return todo1
 
 @router.get("/todo/{todo_id}", status_code=status.HTTP_200_OK)
-async def get_by_id(db : db_dependency, todo_id : int = Path(gt = 0)):
-    todo1 = db.query(Todo).filter(Todo.id == todo_id).first()
+async def get_by_id(user: user_dependency,
+                    db : db_dependency,
+                    todo_id : int = Path(gt = 0)):
+    todo1 = db.query(Todo).filter(Todo.id == todo_id) \
+        .filter(Todo.owner_id==user.get("user_id")).first()
     if todo1 is not None:
         return todo1
-    raise HTTPException(detail="Id not found", status_code=404)
+    raise HTTPException(detail="Todo not found", status_code=404)
 
 @router.post("/todo", status_code=status.HTTP_201_CREATED)
 async def create_todo(todoreq: TodoRequest, db : db_dependency,
                       user: user_dependency):
     todo_obj = Todo(**todoreq.model_dump())
-    todo_obj.owner = user.get("user_id")
+    todo_obj.owner_id = user.get("user_id")
     db.add(todo_obj)
     db.commit()
 
 @router.put("/todo/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_todo( db: db_dependency,
+                       user: user_dependency,
                        todoreq: TodoRequest,
                        todo_id : int = Path(gt = 0)
                      ):
-    todo1 = db.query(Todo).filter(Todo.id==todo_id).first()
+    todo1 = (db.query(Todo).filter(Todo.id==todo_id).
+             filter(Todo.owner_id==user.get("user_id")).first())
     if todo1 is not None:
         todo1.id = todo_id
         todo1.title = todoreq.title

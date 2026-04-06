@@ -19,4 +19,4 @@ class Todo(Base):
     description = Column(String)
     priority = Column(INTEGER)
     completed = Column(Boolean, default = False)
-    owner = Column(ForeignKey("user.id"))
+    owner_id = Column(ForeignKey("user.id"))

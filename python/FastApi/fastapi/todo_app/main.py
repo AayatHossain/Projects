@@ -3,7 +3,7 @@ import models
 from database import engine
 from routers import todo
 from routers import auth
-app = FastAPI()
+app = FastAPI(title = "Todo_App")
 
 models.Base.metadata.create_all(bind = engine)
 
