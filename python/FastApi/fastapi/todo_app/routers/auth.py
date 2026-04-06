@@ -63,8 +63,8 @@ def authentication(username: str, password: str, db: db_dependency):
 SECRET_KEY = '9f3c1a7e8b2d4c6f9a0b1e2d3c4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2'
 ALGORITHM = 'HS256'
 
-def create_token(user_id: int, username:str,expiry_time: timedelta):
-    encode_val = {'sub':username, 'id':user_id, 'exp' : datetime.now(timezone.utc)  + expiry_time}
+def create_token(user_role: int, user_id: int, username:str,expiry_time: timedelta):
+    encode_val = {'role': user_role, 'sub':username, 'id':user_id, 'exp' : datetime.now(timezone.utc)  + expiry_time}
     token = jwt.encode(encode_val, SECRET_KEY, algorithm = ALGORITHM)
     return token
 
@@ -79,7 +79,7 @@ async def login_for_token(form: Annotated[OAuth2PasswordRequestForm, Depends()],
     user = authentication(form.username,form.password,db)
     if user is None:
         raise HTTPException(status_code=401, detail="invalid credentials")
-    token = create_token(user.id, user.username, timedelta(minutes=20))
+    token = create_token(user.role, user.id, user.username, timedelta(minutes=20))
     return {
         "access_token" : token,
         "token_type" : "bearer"
@@ -91,9 +91,10 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username : str = payload.get('sub')
         user_id : int = payload.get('id')
+        user_role: int = payload.get('role')
         if username is None or user_id is None:
             raise HTTPException(status_code=401, detail="invalid credentials")
-        return {"username" : username, "user_id" : user_id}
+        return {"username" : username, "user_id" : user_id, 'user_role':user_role}
     except JWTError:
         raise HTTPException(status_code=401, detail="invalid credentials")
 

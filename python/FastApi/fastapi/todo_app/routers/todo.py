@@ -7,7 +7,10 @@ from models import Todo
 from database import Sessionlocal
 from .auth import get_current_user
 
-router = APIRouter()
+router = APIRouter(
+    prefix = "/todo",
+    tags = ["todo"]
+)
 
 def get_db():
     db = Sessionlocal()
@@ -27,11 +30,11 @@ class TodoRequest(BaseModel):
     completed : bool
 
 
-@router.get("/todo")
+@router.get("/")
 async def get_todo(db : db_dependency, user:user_dependency):
     return db.query(Todo).filter(Todo.owner_id==user.get("user_id")).all()
 
-@router.get("/todo/{todo_id}", status_code=status.HTTP_200_OK)
+@router.get("/{todo_id}", status_code=status.HTTP_200_OK)
 async def get_by_id(user: user_dependency,
                     db : db_dependency,
                     todo_id : int = Path(gt = 0)):
@@ -41,7 +44,7 @@ async def get_by_id(user: user_dependency,
         return todo1
     raise HTTPException(detail="Todo not found", status_code=404)
 
-@router.post("/todo", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_todo(todoreq: TodoRequest, db : db_dependency,
                       user: user_dependency):
     todo_obj = Todo(**todoreq.model_dump())
@@ -49,7 +52,7 @@ async def create_todo(todoreq: TodoRequest, db : db_dependency,
     db.add(todo_obj)
     db.commit()
 
-@router.put("/todo/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_todo( db: db_dependency,
                        user: user_dependency,
                        todoreq: TodoRequest,
@@ -71,7 +74,7 @@ async def update_todo( db: db_dependency,
         raise HTTPException(detail="No id found", status_code=404)
 
 
-@router.delete("/todo/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_todo(db: db_dependency ,
                       user: user_dependency,
                       todo_id : int = Path(gt = 0)):
