@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from database import Sessionlocal
 from models import User
@@ -21,6 +21,8 @@ class UserRequest(BaseModel):
     email : str
     role : str
     password : str
+    phone_number: str
+
 
 def get_db():
     db = Sessionlocal()
@@ -39,10 +41,14 @@ async def create_user(db : db_dependency, user: UserRequest):
         email=user.email,
         hashed_password = bcrypt_context.hash(user.password),
         role = user.role,
-        is_active = True
+        is_active = True,
+        phone_number =user.phone_number
+
+
     )
     if new_user.username is None:
         raise HTTPException(status_code=401, detail = "Invalid username")
+
     db.add(new_user)
     db.commit()
 

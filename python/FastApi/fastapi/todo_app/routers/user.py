@@ -32,8 +32,16 @@ async def get_user(user: user_dependency, db: db_dependency):
 async def change_password(user: user_dependency, db: db_dependency, new_password: str):
     user1 = db.query(User).filter(User.id == user.get("user_id")).first()
     if user1 is None:
-        raise HTTPException(status_code=401, detail="No user")
+        raise HTTPException(status_code=404, detail="No user")
     user1.hashed_password = bcrypt_context.hash(new_password)
     db.add(user1)
     db.commit()
 
+@router.put("/change_phone_number",status_code=status.HTTP_204_NO_CONTENT)
+async def change_phone_number(db: db_dependency, user: user_dependency, phone: str):
+    user1 = db.query(User).filter(User.id==user.get("user_id")).first()
+    if user1 is None:
+        raise HTTPException(status_code=404, detail="No user")
+    user1.phone_number = phone
+    db.add(user1)
+    db.commit()
