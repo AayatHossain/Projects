@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Annotated
 from starlette import status
-from models import User
-from database import Sessionlocal
+from ..models import User
+from ..database import Sessionlocal
 from .auth import get_current_user, bcrypt_context
 
 router = APIRouter(
