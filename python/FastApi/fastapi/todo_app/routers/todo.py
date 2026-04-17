@@ -30,7 +30,7 @@ class TodoRequest(BaseModel):
     completed : bool
 
 
-@router.get("/")
+@router.get("/", status_code=status.HTTP_200_OK)
 async def get_todo(db : db_dependency, user:user_dependency):
     return db.query(Todo).filter(Todo.owner_id==user.get("user_id")).all()
 
@@ -42,7 +42,7 @@ async def get_by_id(user: user_dependency,
         .filter(Todo.owner_id==user.get("user_id")).first()
     if todo1 is not None:
         return todo1
-    raise HTTPException(detail="Todo not found", status_code=404)
+    raise HTTPException(detail="Todo not found", status_code=status.HTTP_404_NOT_FOUND)
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_todo(todoreq: TodoRequest, db : db_dependency,
