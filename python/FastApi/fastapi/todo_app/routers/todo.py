@@ -71,7 +71,7 @@ async def update_todo( db: db_dependency,
         db.commit()
 
     else :
-        raise HTTPException(detail="No id found", status_code=404)
+        raise HTTPException(detail="No id found", status_code=status.HTTP_404_NOT_FOUND)
 
 
 @router.delete("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -81,7 +81,7 @@ async def delete_todo(db: db_dependency ,
     todo1 = (db.query(Todo).filter(Todo.id==todo_id)
              .filter(Todo.owner_id==user.get("user_id")).first())
     if todo1 is None:
-        raise HTTPException(detail = "No id found, can't delete", status_code=404)
+        raise HTTPException(detail = "No id found, can't delete", status_code=status.HTTP_404_NOT_FOUND)
     db.delete(todo1)
     db.commit()
 
