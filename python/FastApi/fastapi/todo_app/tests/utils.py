@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from ..main import app
 from ..routers.todo import get_db
+from ..routers.admin import get_db as get_db_admin
 from ..routers.auth import get_current_user
 from ..database import Base
 from ..models import Todo
@@ -13,11 +14,11 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL , connect_args={"check_same_threa
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
 
-def override_get_current_user():
+def override_get_current_user(role = "user"):
     return {
         "username": "jon",
         "user_id": 1,
-        "user_role": "user"
+        "user_role": role
     }
 
 @pytest.fixture
@@ -44,12 +45,26 @@ def db_session():
 
 
 @pytest.fixture
-def client(db_session):
+def user_client(db_session):
     def override_get_db():
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
-    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_current_user] = lambda: override_get_current_user("user")
+
+    client1 = TestClient(app)
+    try:
+        yield client1
+    finally:
+        app.dependency_overrides = {}
+
+@pytest.fixture
+def admin_client(db_session):
+    def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db_admin] = override_get_db
+    app.dependency_overrides[get_current_user] = lambda: override_get_current_user("admin")
 
     client1 = TestClient(app)
     try:
