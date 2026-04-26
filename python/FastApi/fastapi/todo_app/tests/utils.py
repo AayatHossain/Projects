@@ -5,9 +5,12 @@ from fastapi.testclient import TestClient
 from ..main import app
 from ..routers.todo import get_db
 from ..routers.admin import get_db as get_db_admin
+from ..routers.user import get_db as get_db_user
+from ..routers.auth import get_db as get_db_auth
+from ..routers.auth import get_current_user, bcrypt_context
 from ..routers.auth import get_current_user
 from ..database import Base
-from ..models import Todo
+from ..models import Todo,User
 
 SQLALCHEMY_DATABASE_URL  = "sqlite:///./test_db.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL , connect_args={"check_same_thread": False})
@@ -34,7 +37,18 @@ def db_session():
         completed=False,
         owner_id=1
     )
+
+    user = User(
+        email="jon@gmail.com",
+        username="jon",
+        hashed_password=bcrypt_context.hash("testpassword"),
+        role="user",
+        phone_number="123456789",
+        is_active = "Yes"
+    )
+
     session.add(todo)
+    session.add(user)
     session.commit()
 
     yield session
@@ -50,6 +64,8 @@ def user_client(db_session):
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_db_user] = override_get_db
+    app.dependency_overrides[get_db_auth] = override_get_db()
     app.dependency_overrides[get_current_user] = lambda: override_get_current_user("user")
 
     client1 = TestClient(app)
@@ -64,6 +80,7 @@ def admin_client(db_session):
         yield db_session
 
     app.dependency_overrides[get_db_admin] = override_get_db
+    app.dependency_overrides[get_db_auth] = override_get_db()
     app.dependency_overrides[get_current_user] = lambda: override_get_current_user("admin")
 
     client1 = TestClient(app)
