@@ -44,7 +44,7 @@ def db_session():
         hashed_password=bcrypt_context.hash("testpassword"),
         role="user",
         phone_number="123456789",
-        is_active = "Yes"
+        is_active = True
     )
 
     session.add(todo)
@@ -65,7 +65,7 @@ def user_client(db_session):
 
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_db_user] = override_get_db
-    app.dependency_overrides[get_db_auth] = override_get_db()
+    app.dependency_overrides[get_db_auth] = override_get_db
     app.dependency_overrides[get_current_user] = lambda: override_get_current_user("user")
 
     client1 = TestClient(app)
@@ -80,7 +80,7 @@ def admin_client(db_session):
         yield db_session
 
     app.dependency_overrides[get_db_admin] = override_get_db
-    app.dependency_overrides[get_db_auth] = override_get_db()
+    app.dependency_overrides[get_db_auth] = override_get_db
     app.dependency_overrides[get_current_user] = lambda: override_get_current_user("admin")
 
     client1 = TestClient(app)
