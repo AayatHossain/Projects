@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { getTodos, createTodo } from "../services/todoService";
+import { getTodos, createTodo, deleteTodo } from "../services/todoService";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import TodoList from "../components/TodoList";
 import CreateTodo from "../components/CreateTodo";
+import { updateTodo } from "../services/todoService";
+
 
 function Dashboard() {
   const [todos, setTodos] = useState([]);
@@ -34,15 +36,35 @@ function Dashboard() {
     load();
   }, []);
 
- 
   const handleAddTodo = async (todo) => {
-  try {
-    const created = await createTodo(todo);
-    setTodos((prev) => [created, ...prev]);
-  } catch (err) {
-    throw err;
-  }
-};
+    try {
+      const created = await createTodo(todo);
+      setTodos((prev) => [created, ...prev]);
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const handleUpdateTodo = async (id, updatedData) => {
+    try {
+      const updated = await updateTodo(id, updatedData);
+
+      setTodos((prev) =>
+        prev.map((t) => (t.id === id ? updated : t))
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteTodo = async (id) => {
+    try {
+      await deleteTodo(id);
+      setTodos((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -52,7 +74,6 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
 
-      {/* Header */}
       <div className="max-w-2xl mx-auto flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">My Todos</h1>
@@ -69,14 +90,12 @@ function Dashboard() {
         </button>
       </div>
 
-      
       <div className="max-w-2xl mx-auto">
         <CreateTodo onAdd={handleAddTodo} />
       </div>
 
-      
       <div className="max-w-2xl mx-auto mt-4">
-        <TodoList todos={todos} />
+        <TodoList todos={todos} onDelete={handleDeleteTodo} onUpdate={handleUpdateTodo} />
       </div>
 
     </div>

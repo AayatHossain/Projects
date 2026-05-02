@@ -13,3 +13,8 @@ export const createTodo = async (todo) => {
 export const deleteTodo = async (id) => {
   await API.delete(`/todo/${id}`);
 };
+
+export const updateTodo = async (id, updatedData) => {
+  const res = await API.put(`/todo/${id}`, updatedData);
+  return res.data;
+};

@@ -54,7 +54,7 @@ async def create_todo(todoreq: TodoRequest, db : db_dependency,
     db.refresh(todo_obj)
     return todo_obj
 
-@router.put("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/{todo_id}", status_code=status.HTTP_200_OK)
 async def update_todo( db: db_dependency,
                        user: user_dependency,
                        todoreq: TodoRequest,
@@ -62,18 +62,21 @@ async def update_todo( db: db_dependency,
                      ):
     todo1 = (db.query(Todo).filter(Todo.id==todo_id).
              filter(Todo.owner_id==user.get("user_id")).first())
-    if todo1 is not None:
+    
+    if todo1 is None:
+        raise HTTPException(
+            detail="No id found",
+            status_code=status.HTTP_404_NOT_FOUND
+        )
 
-        todo1.title = todoreq.title
-        todo1.description = todoreq.description
-        todo1.priority = todoreq.priority
-        todo1.completed = todoreq.completed
+    todo1.title = todoreq.title
+    todo1.description = todoreq.description
+    todo1.priority = todoreq.priority
+    todo1.completed = todoreq.completed
 
-        db.add(todo1)
-        db.commit()
-
-    else :
-        raise HTTPException(detail="No id found", status_code=status.HTTP_404_NOT_FOUND)
+    db.commit()
+    db.refresh(todo1)
+    return todo1
 
 
 @router.delete("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
