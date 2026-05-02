@@ -2,16 +2,18 @@ import { useState } from "react";
 
 function TodoItem({ todo, onDelete, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(todo.title);
-  const [description, setDescription] = useState(todo.description);
-  const [priority, setPriority] = useState(todo.priority);
+
+  const [title, setTitle] = useState(todo.title || "");
+  const [description, setDescription] = useState(todo.description || "");
+  const [priority, setPriority] = useState(todo.priority || 1);
+  const [completed, setCompleted] = useState(todo.completed);
 
   const handleSave = async () => {
     const updatedData = {
       title,
       description,
       priority,
-      completed: todo.completed,
+      completed,
     };
 
     try {
@@ -20,6 +22,15 @@ function TodoItem({ todo, onDelete, onUpdate }) {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleCancel = () => {
+    // reset values back to original todo
+    setTitle(todo.title || "");
+    setDescription(todo.description || "");
+    setPriority(todo.priority || 1);
+    setCompleted(todo.completed);
+    setIsEditing(false);
   };
 
   if (isEditing) {
@@ -47,6 +58,17 @@ function TodoItem({ todo, onDelete, onUpdate }) {
           onChange={(e) => setPriority(Number(e.target.value))}
         />
 
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={completed}
+            onChange={(e) => setCompleted(e.target.checked)}
+          />
+          <label className="text-sm text-gray-600">
+            Completed
+          </label>
+        </div>
+
         <div className="flex gap-2">
           <button
             onClick={handleSave}
@@ -56,7 +78,7 @@ function TodoItem({ todo, onDelete, onUpdate }) {
           </button>
 
           <button
-            onClick={() => setIsEditing(false)}
+            onClick={handleCancel}
             className="bg-gray-400 text-white px-3 py-1 rounded"
           >
             Cancel
@@ -73,7 +95,7 @@ function TodoItem({ todo, onDelete, onUpdate }) {
       <div className="absolute top-3 right-3 flex gap-2">
 
         <button
-          onClick={() => setIsEditing(!isEditing)}
+          onClick={() => setIsEditing(true)}
           className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 transition"
         >
           Edit
@@ -96,12 +118,12 @@ function TodoItem({ todo, onDelete, onUpdate }) {
       </p>
 
       <div className="flex justify-between items-center mt-3">
-        <span className="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-600">
+        <span className="text-sm px-3 py-1 rounded-md bg-indigo-100 text-indigo-600">
           Priority: {todo.priority}
         </span>
 
         <span
-          className={`text-sm ${todo.completed ? "text-green-500" : "text-gray-400"
+          className={`text-sm px-3 py-1 rounded-md text-white ${todo.completed ? "bg-green-500" : "bg-gray-400"
             }`}
         >
           {todo.completed ? "Completed" : "Pending"}
