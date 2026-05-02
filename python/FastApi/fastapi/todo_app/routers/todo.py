@@ -32,7 +32,7 @@ class TodoRequest(BaseModel):
 
 @router.get("/", status_code=status.HTTP_200_OK)
 async def get_todo(db : db_dependency, user:user_dependency):
-    return db.query(Todo).filter(Todo.owner_id==user.get("user_id")).all()
+    return db.query(Todo).filter(Todo.owner_id==user.get("user_id")).order_by(Todo.priority.asc()).all()
 
 @router.get("/{todo_id}", status_code=status.HTTP_200_OK)
 async def get_by_id(user: user_dependency,
@@ -51,6 +51,8 @@ async def create_todo(todoreq: TodoRequest, db : db_dependency,
     todo_obj.owner_id = user.get("user_id")
     db.add(todo_obj)
     db.commit()
+    db.refresh(todo_obj)
+    return todo_obj
 
 @router.put("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_todo( db: db_dependency,
