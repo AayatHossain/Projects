@@ -18,3 +18,15 @@ export const updateTodo = async (id, updatedData) => {
   const res = await API.put(`/todo/${id}`, updatedData);
   return res.data;
 };
+
+export const getAllTodos = async () => {
+  const response = await API.get("/admin/");
+  return response.data;
+};
+
+
+export const adminDeleteTodo = async (id) => {
+  await API.delete(`/admin/${id}`);
+};
+
+

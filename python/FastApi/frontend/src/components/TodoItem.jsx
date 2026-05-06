@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function TodoItem({ todo, onDelete, onUpdate }) {
+function TodoItem({ todo, onDelete, onUpdate, isAdmin }) {
   const [isEditing, setIsEditing] = useState(false);
 
   const [title, setTitle] = useState(todo.title || "");
@@ -33,7 +33,7 @@ function TodoItem({ todo, onDelete, onUpdate }) {
     setIsEditing(false);
   };
 
-  if (isEditing) {
+  if (isEditing && !isAdmin) {
     return (
       <div className="bg-white p-5 rounded-xl shadow space-y-3">
 
@@ -94,12 +94,14 @@ function TodoItem({ todo, onDelete, onUpdate }) {
 
       <div className="absolute top-3 right-3 flex gap-2">
 
-        <button
-          onClick={() => setIsEditing(true)}
-          className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 transition"
-        >
-          Edit
-        </button>
+        {!isAdmin && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 transition"
+          >
+            Edit
+          </button>
+        )}
 
         <button
           onClick={() => onDelete(todo.id)}
@@ -113,9 +115,15 @@ function TodoItem({ todo, onDelete, onUpdate }) {
         {todo.title}
       </h2>
 
-      <p className="text-gray-600 mt-1">
+      <p className="text-gray-600 mt-1 break-words whitespace-pre-wrap">
         {todo.description || "No description"}
       </p>
+
+      {isAdmin && (
+        <p className="text-sm font-bold mt-1">
+          Owner ID: {todo.owner_id}
+        </p>
+      )}
 
       <div className="flex justify-between items-center mt-3">
         <span className="text-sm px-3 py-1 rounded-md bg-indigo-100 text-indigo-600">
