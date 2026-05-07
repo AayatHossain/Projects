@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function TodoItem({ todo, onDelete, onUpdate, isAdmin }) {
+function TodoItem({ todo, onDelete, onUpdate, isAdmin, animationDelay = 0 }) {
   const [isEditing, setIsEditing] = useState(false);
 
   const [title, setTitle] = useState(todo.title || "");
@@ -33,9 +33,79 @@ function TodoItem({ todo, onDelete, onUpdate, isAdmin }) {
     setIsEditing(false);
   };
 
+  const cardAnimationStyle = {
+    animationDelay: `${animationDelay}ms`,
+  };
+
+  const animationStyles = (
+    <style>
+      {`
+        @keyframes todoItemEnter {
+          from {
+            opacity: 0;
+            transform: translateY(14px) scale(0.97);
+            filter: blur(5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+          }
+        }
+
+        .todo-item-card {
+          animation: todoItemEnter 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          transform-origin: center;
+          transition:
+            transform 190ms ease,
+            box-shadow 190ms ease,
+            border-color 190ms ease;
+          will-change: transform;
+        }
+
+        .todo-item-card:hover {
+          transform: scale(1.025);
+          box-shadow: 0 18px 38px rgba(31, 41, 55, 0.18);
+        }
+
+        .todo-item-card:focus-within {
+          transform: scale(1.01);
+          box-shadow: 0 16px 34px rgba(31, 41, 55, 0.16);
+        }
+
+        .todo-item-action {
+          transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+        }
+
+        .todo-item-action:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 18px rgba(31, 41, 55, 0.18);
+        }
+
+        .todo-item-action:active {
+          transform: translateY(0) scale(0.97);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .todo-item-card,
+          .todo-item-card:hover,
+          .todo-item-card:focus-within,
+          .todo-item-action,
+          .todo-item-action:hover,
+          .todo-item-action:active {
+            animation: none;
+            transform: none;
+            transition: none;
+          }
+        }
+      `}
+    </style>
+  );
+
   if (isEditing && !isAdmin) {
     return (
-      <div className="bg-white p-5 rounded-xl shadow space-y-3">
+      <div className="todo-item-card bg-white p-5 rounded-xl shadow space-y-3 border border-transparent" style={cardAnimationStyle}>
+        {animationStyles}
 
         <input
           className="w-full p-2 border rounded"
@@ -72,14 +142,14 @@ function TodoItem({ todo, onDelete, onUpdate, isAdmin }) {
         <div className="flex gap-2">
           <button
             onClick={handleSave}
-            className="bg-green-500 text-white px-3 py-1 rounded"
+            className="todo-item-action bg-green-500 text-white px-3 py-1 rounded"
           >
             Save
           </button>
 
           <button
             onClick={handleCancel}
-            className="bg-gray-400 text-white px-3 py-1 rounded"
+            className="todo-item-action bg-gray-400 text-white px-3 py-1 rounded"
           >
             Cancel
           </button>
@@ -90,14 +160,15 @@ function TodoItem({ todo, onDelete, onUpdate, isAdmin }) {
   }
 
   return (
-    <div className="bg-white p-5 rounded-xl shadow relative">
+    <div className="todo-item-card bg-white p-5 rounded-xl shadow relative border border-transparent" style={cardAnimationStyle}>
+      {animationStyles}
 
       <div className="absolute top-3 right-3 flex gap-2">
 
         {!isAdmin && (
           <button
             onClick={() => setIsEditing(true)}
-            className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 transition"
+            className="todo-item-action bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600"
           >
             Edit
           </button>
@@ -105,7 +176,7 @@ function TodoItem({ todo, onDelete, onUpdate, isAdmin }) {
 
         <button
           onClick={() => onDelete(todo.id)}
-          className="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 transition"
+          className="todo-item-action bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600"
         >
           Remove
         </button>
