@@ -1,26 +1,7 @@
 function SearchBar({ value, onChange, placeholder = "Search todos..." }) {
   return (
-    <div className="search-bar relative">
-      <style>
-        {`
-          .search-bar input {
-            transition: box-shadow 180ms ease, background-color 180ms ease;
-          }
-
-          .search-bar input:focus {
-            box-shadow: 0 10px 26px rgba(31, 41, 55, 0.18);
-            background-color: rgba(255, 255, 255, 1);
-          }
-
-          @media (prefers-reduced-motion: reduce) {
-            .search-bar input {
-              transition: none;
-            }
-          }
-        `}
-      </style>
-
-      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+    <div className="relative">
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-5 w-5"
@@ -43,7 +24,7 @@ function SearchBar({ value, onChange, placeholder = "Search todos..." }) {
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label="Search todos"
-        className="w-full rounded-lg border border-transparent bg-white/90 py-2 pl-10 pr-9 text-gray-800 placeholder-gray-400 shadow focus:outline-none"
+        className="ui-input pl-10 pr-9"
       />
 
       {value && (
@@ -51,7 +32,7 @@ function SearchBar({ value, onChange, placeholder = "Search todos..." }) {
           type="button"
           onClick={() => onChange("")}
           aria-label="Clear search"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 text-gray-400 hover:text-gray-600"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 text-neutral-400 hover:text-neutral-600"
         >
           ✕
         </button>

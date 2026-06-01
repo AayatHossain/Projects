@@ -20,7 +20,7 @@ function AdminDashboard() {
     try {
       const decoded = jwtDecode(token);
 
-      // 🔐 block non-admin
+      // block non-admin
       if (decoded.role !== "admin") {
         navigate("/dashboard");
         return;
@@ -54,13 +54,13 @@ function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-6">
+    <div className="min-h-screen bg-neutral-100 p-6">
 
       {/* Header */}
-      <div className="max-w-6xl mx-auto flex justify-between items-center mb-8 bg-white/20 backdrop-blur-md p-4 rounded-xl shadow-lg">
+      <div className="ui-card max-w-6xl mx-auto flex justify-between items-center mb-8 p-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
-          <p className="text-sm text-indigo-100">
+          <h1 className="text-2xl font-semibold text-neutral-900">Admin Panel</h1>
+          <p className="text-sm text-neutral-500">
             Logged in as {username}
           </p>
         </div>
@@ -68,14 +68,14 @@ function AdminDashboard() {
         <div className="flex gap-2">
           <button
             onClick={() => navigate("/admin/users")}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="ui-btn ui-btn-outline"
           >
             All Users
           </button>
 
           <button
             onClick={() => navigate("/dashboard")}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="ui-btn ui-btn-secondary"
           >
             Back to Dashboard
           </button>
@@ -83,7 +83,7 @@ function AdminDashboard() {
       </div>
 
       {/* Centered Todo List */}
-      <div className="max-w-4xl mx-auto bg-white/20 backdrop-blur-md p-4 rounded-xl shadow-lg max-h-[75vh] overflow-y-auto">
+      <div className="max-w-4xl mx-auto max-h-[75vh] overflow-y-auto pr-1">
         <TodoList
           todos={todos}
           onDelete={handleDeleteTodo}

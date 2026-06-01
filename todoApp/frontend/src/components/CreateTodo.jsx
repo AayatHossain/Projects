@@ -46,41 +46,41 @@ function CreateTodo({ onAdd }) {
 };
 
   return (
-    <div className="bg-white p-5 rounded-xl shadow mb-6 space-y-4">
+    <div className="ui-card p-5 space-y-4">
 
-      <h2 className="text-lg font-semibold">Create Todo</h2>
+      <h2 className="text-lg font-semibold text-neutral-900">Create Todo</h2>
 
       {error && (
-        <p className="text-red-500 text-sm">
+        <p className="text-red-600 text-sm">
           {error}
         </p>
       )}
 
-      <div>
-        <label className="text-sm text-gray-600">Title</label>
+      <div className="space-y-1.5">
+        <label className="ui-label">Title</label>
         <input
-          className="w-full p-2 border rounded mt-1"
+          className="ui-input"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
       </div>
 
-      <div>
-        <label className="text-sm text-gray-600">Description</label>
+      <div className="space-y-1.5">
+        <label className="ui-label">Description</label>
         <textarea
-          className="w-full p-2 border rounded mt-1"
+          className="ui-input"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
       </div>
 
-      <div>
-        <label className="text-sm text-gray-600">Priority (1–5)</label>
+      <div className="space-y-1.5">
+        <label className="ui-label">Priority (1–5)</label>
         <input
           type="number"
           min="1"
           max="5"
-          className="w-full p-2 border rounded mt-1"
+          className="ui-input"
           value={priority}
           onChange={(e) => setPriority(Number(e.target.value))}
         />
@@ -88,7 +88,7 @@ function CreateTodo({ onAdd }) {
 
       <button
         onClick={handleSubmit}
-        className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+        className="ui-btn ui-btn-primary w-full"
       >
         Add Todo
       </button>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function TodoItem({ todo, onDelete, onUpdate, isAdmin, animationDelay = 0 }) {
+function TodoItem({ todo, onDelete, onUpdate, isAdmin }) {
   const [isEditing, setIsEditing] = useState(false);
 
   const [title, setTitle] = useState(todo.title || "");
@@ -33,88 +33,17 @@ function TodoItem({ todo, onDelete, onUpdate, isAdmin, animationDelay = 0 }) {
     setIsEditing(false);
   };
 
-  const cardAnimationStyle = {
-    animationDelay: `${animationDelay}ms`,
-  };
-
-  const animationStyles = (
-    <style>
-      {`
-        @keyframes todoItemEnter {
-          from {
-            opacity: 0;
-            transform: translateY(14px) scale(0.97);
-            filter: blur(5px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            filter: blur(0);
-          }
-        }
-
-        .todo-item-card {
-          animation: todoItemEnter 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
-          transform-origin: center;
-          transition:
-            transform 190ms ease,
-            box-shadow 190ms ease,
-            border-color 190ms ease;
-          will-change: transform;
-        }
-
-        .todo-item-card:hover {
-          transform: scale(1.025);
-          box-shadow: 0 18px 38px rgba(31, 41, 55, 0.18);
-        }
-
-        .todo-item-card:focus-within {
-          transform: scale(1.01);
-          box-shadow: 0 16px 34px rgba(31, 41, 55, 0.16);
-        }
-
-        .todo-item-action {
-          transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
-        }
-
-        .todo-item-action:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 8px 18px rgba(31, 41, 55, 0.18);
-        }
-
-        .todo-item-action:active {
-          transform: translateY(0) scale(0.97);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .todo-item-card,
-          .todo-item-card:hover,
-          .todo-item-card:focus-within,
-          .todo-item-action,
-          .todo-item-action:hover,
-          .todo-item-action:active {
-            animation: none;
-            transform: none;
-            transition: none;
-          }
-        }
-      `}
-    </style>
-  );
-
   if (isEditing && !isAdmin) {
     return (
-      <div className="todo-item-card bg-white p-5 rounded-xl shadow space-y-3 border border-transparent" style={cardAnimationStyle}>
-        {animationStyles}
-
+      <div className="ui-card p-5 space-y-3">
         <input
-          className="w-full p-2 border rounded"
+          className="ui-input"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
 
         <textarea
-          className="w-full p-2 border rounded"
+          className="ui-input"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
@@ -123,7 +52,7 @@ function TodoItem({ todo, onDelete, onUpdate, isAdmin, animationDelay = 0 }) {
           type="number"
           min="1"
           max="5"
-          className="w-full p-2 border rounded"
+          className="ui-input"
           value={priority}
           onChange={(e) => setPriority(Number(e.target.value))}
         />
@@ -134,7 +63,7 @@ function TodoItem({ todo, onDelete, onUpdate, isAdmin, animationDelay = 0 }) {
             checked={completed}
             onChange={(e) => setCompleted(e.target.checked)}
           />
-          <label className="text-sm text-gray-600">
+          <label className="text-sm text-neutral-600">
             Completed
           </label>
         </div>
@@ -142,14 +71,14 @@ function TodoItem({ todo, onDelete, onUpdate, isAdmin, animationDelay = 0 }) {
         <div className="flex gap-2">
           <button
             onClick={handleSave}
-            className="todo-item-action bg-green-500 text-white px-3 py-1 rounded"
+            className="ui-btn ui-btn-primary ui-btn-sm"
           >
             Save
           </button>
 
           <button
             onClick={handleCancel}
-            className="todo-item-action bg-gray-400 text-white px-3 py-1 rounded"
+            className="ui-btn ui-btn-secondary ui-btn-sm"
           >
             Cancel
           </button>
@@ -160,15 +89,14 @@ function TodoItem({ todo, onDelete, onUpdate, isAdmin, animationDelay = 0 }) {
   }
 
   return (
-    <div className="todo-item-card bg-white p-5 rounded-xl shadow relative border border-transparent" style={cardAnimationStyle}>
-      {animationStyles}
+    <div className="ui-card p-5 relative">
 
       <div className="absolute top-3 right-3 flex gap-2">
 
         {!isAdmin && (
           <button
             onClick={() => setIsEditing(true)}
-            className="todo-item-action bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600"
+            className="ui-btn ui-btn-outline ui-btn-sm"
           >
             Edit
           </button>
@@ -176,34 +104,33 @@ function TodoItem({ todo, onDelete, onUpdate, isAdmin, animationDelay = 0 }) {
 
         <button
           onClick={() => onDelete(todo.id)}
-          className="todo-item-action bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600"
+          className="ui-btn ui-btn-destructive ui-btn-sm"
         >
           Remove
         </button>
       </div>
 
-      <h2 className="text-lg font-semibold text-gray-900">
+      <h2 className="text-lg font-semibold text-neutral-900 pr-28">
         {todo.title}
       </h2>
 
-      <p className="text-gray-600 mt-1 break-words whitespace-pre-wrap">
+      <p className="text-neutral-600 mt-1 break-words whitespace-pre-wrap">
         {todo.description || "No description"}
       </p>
 
       {isAdmin && (
-        <p className="text-sm font-bold mt-1">
+        <p className="text-sm font-semibold text-neutral-700 mt-1">
           Owner ID: {todo.owner_id}
         </p>
       )}
 
       <div className="flex justify-between items-center mt-3">
-        <span className="text-sm px-3 py-1 rounded-md bg-indigo-100 text-indigo-600">
+        <span className="ui-badge ui-badge-secondary">
           Priority: {todo.priority}
         </span>
 
         <span
-          className={`text-sm px-3 py-1 rounded-md text-white ${todo.completed ? "bg-green-500" : "bg-gray-400"
-            }`}
+          className={`ui-badge ${todo.completed ? "ui-badge-success" : "ui-badge-outline"}`}
         >
           {todo.completed ? "Completed" : "Pending"}
         </span>
