@@ -64,6 +64,13 @@ function Login() {
           >
             Login
           </button>
+
+          <button
+            onClick={() => navigate("/register")}
+            className="w-full bg-white text-indigo-600 border border-indigo-200 p-3 rounded-lg hover:bg-indigo-50 active:scale-95 transition"
+          >
+            Register
+          </button>
         </div>
 
       </div>
