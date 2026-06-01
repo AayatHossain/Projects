@@ -4,12 +4,23 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import TodoList from "../components/TodoList";
 import CreateTodo from "../components/CreateTodo";
+import SearchBar from "../components/SearchBar";
 
 function Dashboard() {
   const [todos, setTodos] = useState([]);
+  const [search, setSearch] = useState("");
   const [username, setUsername] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+
+  const query = search.trim().toLowerCase();
+  const filteredTodos = query
+    ? todos.filter(
+        (t) =>
+          t.title?.toLowerCase().includes(query) ||
+          t.description?.toLowerCase().includes(query)
+      )
+    : todos;
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -219,8 +230,18 @@ function Dashboard() {
 
         {/* Right: Todo List */}
         <div className="dashboard-panel md:col-span-2 bg-white/20 backdrop-blur-md p-4 rounded-xl shadow-lg max-h-[75vh] overflow-y-auto" style={{ animationDelay: "110ms" }}>
+          <div className="mb-4">
+            <SearchBar value={search} onChange={setSearch} />
+            {query && (
+              <p className="mt-2 text-sm text-indigo-100">
+                {filteredTodos.length} result
+                {filteredTodos.length === 1 ? "" : "s"} for "{search.trim()}"
+              </p>
+            )}
+          </div>
+
           <TodoList
-            todos={todos}
+            todos={filteredTodos}
             onDelete={handleDeleteTodo}
             onUpdate={handleUpdateTodo}
           />
