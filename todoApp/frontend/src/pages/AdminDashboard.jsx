@@ -59,7 +59,7 @@ function AdminDashboard() {
       {/* Header */}
       <div className="ui-card max-w-6xl mx-auto flex justify-between items-center mb-8 p-4">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">Admin Panel</h1>
+          <h1 className="text-2xl font-semibold text-neutral-900">Todo App</h1>
           <p className="text-sm text-neutral-500">
             Logged in as {username}
           </p>
@@ -74,6 +74,13 @@ function AdminDashboard() {
           </button>
 
           <button
+            onClick={() => navigate("/admin")}
+            className="ui-btn ui-btn-primary"
+          >
+            All Todos
+          </button>
+
+          <button
             onClick={() => navigate("/dashboard")}
             className="ui-btn ui-btn-secondary"
           >
@@ -83,12 +90,15 @@ function AdminDashboard() {
       </div>
 
       {/* Centered Todo List */}
-      <div className="max-w-4xl mx-auto max-h-[75vh] overflow-y-auto pr-1">
-        <TodoList
-          todos={todos}
-          onDelete={handleDeleteTodo}
-          isAdmin={true}
-        />
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-lg font-semibold text-neutral-900 mb-4">All Todos</h2>
+        <div className="max-h-[75vh] overflow-y-auto pr-1">
+          <TodoList
+            todos={todos}
+            onDelete={handleDeleteTodo}
+            isAdmin={true}
+          />
+        </div>
       </div>
 
     </div>

@@ -59,26 +59,45 @@ function AllUsers() {
       {/* Header */}
       <div className="ui-card max-w-6xl mx-auto flex justify-between items-center mb-8 p-4">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">All Users</h1>
+          <h1 className="text-2xl font-semibold text-neutral-900">Todo App</h1>
           <p className="text-sm text-neutral-500">
             Logged in as {username}
           </p>
         </div>
 
-        <button
-          onClick={() => navigate("/admin")}
-          className="ui-btn ui-btn-secondary"
-        >
-          Back to Admin Panel
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate("/admin/users")}
+            className="ui-btn ui-btn-primary"
+          >
+            All Users
+          </button>
+
+          <button
+            onClick={() => navigate("/admin")}
+            className="ui-btn ui-btn-outline"
+          >
+            All Todos
+          </button>
+
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="ui-btn ui-btn-secondary"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </div>
 
       {/* Centered User List */}
-      <div className="max-w-4xl mx-auto max-h-[75vh] overflow-y-auto pr-1">
-        <UserList
-          users={users}
-          onDelete={handleDeleteUser}
-        />
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-lg font-semibold text-neutral-900 mb-4">All Users</h2>
+        <div className="max-h-[75vh] overflow-y-auto pr-1">
+          <UserList
+            users={users}
+            onDelete={handleDeleteUser}
+          />
+        </div>
       </div>
 
     </div>

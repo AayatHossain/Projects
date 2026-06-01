@@ -92,9 +92,9 @@ function Dashboard() {
         {/* Header */}
         <div className="ui-card flex justify-between items-center mb-8 p-4">
           <div>
-            <h1 className="text-2xl font-semibold text-neutral-900">My Todos</h1>
+            <h1 className="text-2xl font-semibold text-neutral-900">Todo App</h1>
             <p className="text-sm text-neutral-500">
-              Welcome, {username}
+              Logged in as {username}
             </p>
           </div>
 
@@ -128,6 +128,7 @@ function Dashboard() {
           {/* Right: Todo List */}
           <div className="md:col-span-2 max-h-[75vh] overflow-y-auto pr-1">
             <div className="mb-4">
+              <h2 className="text-lg font-semibold text-neutral-900 mb-3">My Todos</h2>
               <SearchBar value={search} onChange={setSearch} />
               {query && (
                 <p className="mt-2 text-sm text-neutral-500">
