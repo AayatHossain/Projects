@@ -30,3 +30,14 @@ export const adminDeleteTodo = async (id) => {
 };
 
 
+export const getAllUsers = async () => {
+  const response = await API.get("/admin/users");
+  return response.data;
+};
+
+
+export const adminDeleteUser = async (userId) => {
+  await API.delete(`/admin/user/${userId}`);
+};
+
+

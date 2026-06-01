@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { getAllTodos, adminDeleteTodo } from "../services/todoService";
+import { getAllUsers, adminDeleteUser } from "../services/todoService";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import TodoList from "../components/TodoList";
+import UserList from "../components/UserList";
 
-function AdminDashboard() {
-  const [todos, setTodos] = useState([]);
+function AllUsers() {
+  const [users, setUsers] = useState([]);
   const [username, setUsername] = useState("");
   const navigate = useNavigate();
 
@@ -34,8 +34,8 @@ function AdminDashboard() {
 
     const load = async () => {
       try {
-        const data = await getAllTodos();
-        setTodos(data);
+        const data = await getAllUsers();
+        setUsers(data);
       } catch (err) {
         console.error(err);
       }
@@ -44,10 +44,10 @@ function AdminDashboard() {
     load();
   }, [navigate]);
 
-  const handleDeleteTodo = async (id) => {
+  const handleDeleteUser = async (id) => {
     try {
-      await adminDeleteTodo(id);
-      setTodos((prev) => prev.filter((t) => t.id !== id));
+      await adminDeleteUser(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
     } catch (err) {
       console.error(err);
     }
@@ -59,35 +59,25 @@ function AdminDashboard() {
       {/* Header */}
       <div className="max-w-6xl mx-auto flex justify-between items-center mb-8 bg-white/20 backdrop-blur-md p-4 rounded-xl shadow-lg">
         <div>
-          <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
+          <h1 className="text-2xl font-bold text-white">All Users</h1>
           <p className="text-sm text-indigo-100">
             Logged in as {username}
           </p>
         </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate("/admin/users")}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            All Users
-          </button>
-
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            Back to Dashboard
-          </button>
-        </div>
+        <button
+          onClick={() => navigate("/admin")}
+          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+        >
+          Back to Admin Panel
+        </button>
       </div>
 
-      {/* Centered Todo List */}
+      {/* Centered User List */}
       <div className="max-w-4xl mx-auto bg-white/20 backdrop-blur-md p-4 rounded-xl shadow-lg max-h-[75vh] overflow-y-auto">
-        <TodoList
-          todos={todos}
-          onDelete={handleDeleteTodo}
-          isAdmin={true}
+        <UserList
+          users={users}
+          onDelete={handleDeleteUser}
         />
       </div>
 
@@ -95,4 +85,4 @@ function AdminDashboard() {
   );
 }
 
-export default AdminDashboard;
+export default AllUsers;
