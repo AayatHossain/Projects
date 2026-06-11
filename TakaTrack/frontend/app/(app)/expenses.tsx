@@ -25,22 +25,22 @@ export default function ExpensesScreen() {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
-  // session-only custom chips added under Lifestyle & Family
-  const [customItems, setCustomItems] = useState<string[]>([]);
+  // session-only custom chips, per category group
+  const [customItems, setCustomItems] = useState<Record<string, string[]>>({});
+  const [customForKey, setCustomForKey] = useState<string | null>(null);
   const [customInput, setCustomInput] = useState('');
-  const [showCustom, setShowCustom] = useState(false);
 
   function pick(catKey: string, catLabel: string, item: string) {
     setSelected({ catKey, catLabel, note: item });
   }
 
-  function addCustom() {
+  function addCustom(catKey: string, catLabel: string) {
     const name = customInput.trim();
     if (!name) return;
-    setCustomItems((prev) => [...prev, name]);
+    setCustomItems((prev) => ({ ...prev, [catKey]: [...(prev[catKey] ?? []), name] }));
     setCustomInput('');
-    setShowCustom(false);
-    pick('lifestyle', 'Lifestyle & Family', name);
+    setCustomForKey(null);
+    pick(catKey, catLabel, name);
   }
 
   async function onAdd() {
@@ -89,7 +89,7 @@ export default function ExpensesScreen() {
           <Card>
             <SectionTitle>Quick log — tap a category</SectionTitle>
             {CATEGORY_GROUPS.map((g) => {
-              const items = g.key === 'lifestyle' ? [...g.items, ...customItems] : g.items;
+              const items = [...g.items, ...(customItems[g.key] ?? [])];
               return (
                 <View key={g.key} style={{ marginBottom: 12 }}>
                   <Text style={styles.groupHead}>
@@ -107,25 +107,27 @@ export default function ExpensesScreen() {
                         </Pressable>
                       );
                     })}
-                    {g.key === 'lifestyle' && (
-                      <Pressable
-                        onPress={() => setShowCustom((s) => !s)}
-                        style={[styles.chip, styles.chipAdd]}>
-                        <Text style={[styles.chipText, { color: colors.teal }]}>+ Custom</Text>
-                      </Pressable>
-                    )}
+                    <Pressable
+                      onPress={() => {
+                        setCustomInput('');
+                        setCustomForKey((k) => (k === g.key ? null : g.key));
+                      }}
+                      style={[styles.chip, styles.chipAdd]}>
+                      <Text style={[styles.chipText, { color: colors.teal }]}>+ Custom</Text>
+                    </Pressable>
                   </View>
-                  {g.key === 'lifestyle' && showCustom && (
+                  {customForKey === g.key && (
                     <View style={styles.customRow}>
                       <TextInput
                         style={styles.customInput}
                         value={customInput}
                         onChangeText={setCustomInput}
-                        placeholder='e.g. "Biye bari gift"'
+                        placeholder={`Custom ${g.label} item`}
                         placeholderTextColor={colors.muted}
-                        onSubmitEditing={addCustom}
+                        autoFocus
+                        onSubmitEditing={() => addCustom(g.key, g.label)}
                       />
-                      <Pressable style={styles.smallBtn} onPress={addCustom}>
+                      <Pressable style={styles.smallBtn} onPress={() => addCustom(g.key, g.label)}>
                         <Text style={styles.smallBtnText}>Add</Text>
                       </Pressable>
                     </View>

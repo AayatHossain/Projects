@@ -7,24 +7,57 @@ import { colors } from '../../src/theme';
 import { Bar, Card, fmt, Ring, ringColor, SectionTitle } from '../../src/ui';
 
 export default function BudgetScreen() {
-  const { income, categories, spentForCategory, setIncome } = useData();
+  const { income, categories, spentForCategory, setIncome, saveBudget } = useData();
   const [value, setValue] = useState(String(income));
-  const [busy, setBusy] = useState(false);
+  const [busyIncome, setBusyIncome] = useState(false);
 
-  async function save() {
+  // allocation edit mode
+  const [editing, setEditing] = useState(false);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [busySave, setBusySave] = useState(false);
+
+  const allocTotal = editing
+    ? categories.reduce((s, c) => s + (parseFloat(drafts[c.key]) || 0), 0)
+    : categories.reduce((s, c) => s + c.alloc, 0);
+  const over = allocTotal - income;
+
+  async function saveIncome() {
     const v = parseFloat(value);
     if (!v || v <= 0) {
       Alert.alert('Enter income', 'Type your monthly income.');
       return;
     }
-    setBusy(true);
+    setBusyIncome(true);
     try {
       await setIncome(v);
       Alert.alert('Saved', 'Monthly income updated.');
     } catch (e) {
       Alert.alert('Could not save', e instanceof Error ? e.message : 'Try again.');
     } finally {
-      setBusy(false);
+      setBusyIncome(false);
+    }
+  }
+
+  function startEdit() {
+    const d: Record<string, string> = {};
+    categories.forEach((c) => (d[c.key] = String(c.alloc)));
+    setDrafts(d);
+    setEditing(true);
+  }
+
+  async function saveAllocations() {
+    const newCategories = categories.map((c) => ({
+      ...c,
+      alloc: Math.max(0, parseFloat(drafts[c.key]) || 0),
+    }));
+    setBusySave(true);
+    try {
+      await saveBudget(income, newCategories);
+      setEditing(false);
+    } catch (e) {
+      Alert.alert('Could not save', e instanceof Error ? e.message : 'Try again.');
+    } finally {
+      setBusySave(false);
     }
   }
 
@@ -45,7 +78,7 @@ export default function BudgetScreen() {
               placeholder="30000"
               placeholderTextColor={colors.muted}
             />
-            <Pressable style={[styles.setBtn, busy && { opacity: 0.6 }]} onPress={save} disabled={busy}>
+            <Pressable style={[styles.setBtn, busyIncome && { opacity: 0.6 }]} onPress={saveIncome} disabled={busyIncome}>
               <Text style={styles.setBtnText}>Set</Text>
             </Pressable>
           </View>
@@ -56,10 +89,62 @@ export default function BudgetScreen() {
           </View>
         </Card>
 
+        {/* Allocation summary + warning */}
+        <Card style={over > 0 ? styles.warnCard : undefined}>
+          <View style={styles.row}>
+            <Text style={styles.summaryLabel}>Total allocated</Text>
+            <Text style={[styles.summaryVal, over > 0 && { color: colors.red }]}>
+              ৳{fmt(allocTotal)} / {fmt(income)}
+            </Text>
+          </View>
+          {over > 0 ? (
+            <Text style={styles.warnText}>⚠️ Allocations exceed income by ৳{fmt(over)}. Trim an envelope or raise your income.</Text>
+          ) : (
+            <Text style={styles.okText}>✅ ৳{fmt(income - allocTotal)} of income still unallocated.</Text>
+          )}
+        </Card>
+
         <Card>
-          <SectionTitle>Envelopes — allocated vs spent</SectionTitle>
+          <View style={[styles.row, { marginBottom: 10 }]}>
+            <Text style={styles.cardTitle}>Envelopes — allocated vs spent</Text>
+            {editing ? (
+              <View style={styles.editActions}>
+                <Pressable onPress={() => setEditing(false)} style={styles.cancelBtn}>
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </Pressable>
+                <Pressable onPress={saveAllocations} style={[styles.saveBtn, busySave && { opacity: 0.6 }]} disabled={busySave}>
+                  <Text style={styles.saveText}>Save</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable onPress={startEdit} style={styles.editBtn}>
+                <Text style={styles.editText}>✎ Edit</Text>
+              </Pressable>
+            )}
+          </View>
+
           {categories.map((c) => {
             const spent = spentForCategory(c.key);
+            if (editing) {
+              return (
+                <View key={c.key} style={styles.editRow}>
+                  <Text style={styles.editName}>
+                    {c.icon} {c.label}
+                  </Text>
+                  <View style={styles.allocInputWrap}>
+                    <Text style={styles.takaSmall}>৳</Text>
+                    <TextInput
+                      style={styles.allocInput}
+                      value={drafts[c.key]}
+                      onChangeText={(t) => setDrafts((p) => ({ ...p, [c.key]: t }))}
+                      keyboardType="numeric"
+                      placeholder="0"
+                      placeholderTextColor={colors.muted}
+                    />
+                  </View>
+                </View>
+              );
+            }
             const pct = c.alloc > 0 ? spent / c.alloc : 0;
             return (
               <View key={c.key} style={styles.env}>
@@ -78,9 +163,12 @@ export default function BudgetScreen() {
               </View>
             );
           })}
-          <Text style={styles.hint}>
-            Allocations come from your defaults; logging an expense fills the matching envelope.
-          </Text>
+
+          {editing ? (
+            <Text style={styles.hint}>Set how much of your income goes to each envelope, then Save.</Text>
+          ) : (
+            <Text style={styles.hint}>Logging an expense fills the matching envelope. Tap Edit to change allocations.</Text>
+          )}
         </Card>
       </ScrollView>
     </SafeAreaView>
@@ -109,9 +197,31 @@ const styles = StyleSheet.create({
   legendItem: { flexDirection: 'row', alignItems: 'center' },
   dot: { width: 9, height: 9, borderRadius: 3, marginRight: 5 },
   legendText: { fontSize: 10, color: colors.muted },
+
+  warnCard: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+  summaryLabel: { fontSize: 13, fontWeight: '700', color: '#334155' },
+  summaryVal: { fontSize: 14, fontWeight: '800', color: colors.ink },
+  warnText: { fontSize: 12, color: '#b91c1c', marginTop: 8, lineHeight: 18, fontWeight: '600' },
+  okText: { fontSize: 12, color: colors.green, marginTop: 8 },
+
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardTitle: { fontSize: 13, fontWeight: '700', color: '#334155' },
+  editBtn: { backgroundColor: '#eef2f7', borderRadius: 9, paddingHorizontal: 12, paddingVertical: 6 },
+  editText: { fontSize: 12, fontWeight: '700', color: colors.teal },
+  editActions: { flexDirection: 'row', gap: 7 },
+  cancelBtn: { borderRadius: 9, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: colors.line },
+  cancelText: { fontSize: 12, fontWeight: '700', color: colors.muted },
+  saveBtn: { backgroundColor: colors.teal, borderRadius: 9, paddingHorizontal: 14, paddingVertical: 6 },
+  saveText: { fontSize: 12, fontWeight: '800', color: '#fff' },
+
+  editRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.line },
+  editName: { fontSize: 13, fontWeight: '700', color: colors.ink, flex: 1 },
+  allocInputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.line, borderRadius: 10, paddingHorizontal: 10, width: 130 },
+  takaSmall: { fontSize: 14, fontWeight: '700', color: colors.muted },
+  allocInput: { flex: 1, paddingVertical: 8, paddingHorizontal: 6, fontSize: 14, fontWeight: '700', color: colors.ink },
+
   env: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.line },
   envMeta: { flex: 1 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   envName: { fontSize: 13, fontWeight: '800', color: colors.ink },
   muted: { fontSize: 12, color: colors.muted },
   hint: { fontSize: 10, color: colors.muted, marginTop: 10 },

@@ -18,6 +18,7 @@ type DataState = {
   logExpense: (e: { catKey: string; catLabel: string; note: string; amt: number }) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
   setIncome: (income: number) => Promise<void>;
+  saveBudget: (income: number, categories: Category[]) => Promise<void>;
   addGoal: (g: { name: string; icon: string; target: number }) => Promise<void>;
   deposit: (id: string, amount: number) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
@@ -94,6 +95,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setIncome: async (value) => {
       await api.data.setBudget(token!, value, categories);
       setIncomeState(value);
+    },
+    saveBudget: async (newIncome, newCategories) => {
+      await api.data.setBudget(token!, newIncome, newCategories);
+      setIncomeState(newIncome);
+      setCategories(newCategories);
     },
     addGoal: async (g) => {
       const created = await api.data.addGoal(token!, g);
