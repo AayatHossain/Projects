@@ -19,12 +19,15 @@ const MANUAL_URL: string | null = null;
 
 function detectHost(): string | null {
   // hostUri looks like "192.168.0.107:8081" or "localhost:8081".
+  const c = Constants as unknown as {
+    expoConfig?: { hostUri?: string };
+    expoGoConfig?: { debuggerHost?: string };
+    manifest2?: { extra?: { expoGo?: { debuggerHost?: string } } };
+  };
   const hostUri =
-    Constants.expoConfig?.hostUri ??
-    // @ts-expect-error older/runtime-only fields
-    Constants.expoGoConfig?.debuggerHost ??
-    // @ts-expect-error older/runtime-only fields
-    Constants.manifest2?.extra?.expoGo?.debuggerHost ??
+    c.expoConfig?.hostUri ??
+    c.expoGoConfig?.debuggerHost ??
+    c.manifest2?.extra?.expoGo?.debuggerHost ??
     null;
   if (!hostUri) return null;
   return hostUri.split(':')[0];
