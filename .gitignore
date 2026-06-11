@@ -4,3 +4,10 @@
 *.pyc
 **/node_modules/
 .env
+
+# Firebase service account secrets — NEVER commit
+**/firebasereqs/emergency.json
+**/serviceAccountKey*.json
+**/service-account*.json
+*-firebase-adminsdk-*.json
+google-services.json
