@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   aiHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   reloadBtn: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#e4d9fb' },
   reloadIcon: { fontSize: 16, fontWeight: '900', color: colors.violet, lineHeight: 18 },
-  aiTag: { fontSize: 10, fontWeight: '800', color: colors.violet, letterSpacing: 0.5 },
+  aiTag: { fontSize: 14, fontWeight: '800', color: colors.violet, letterSpacing: 0.5 },
   seeMoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 12, paddingVertical: 9, borderRadius: 10, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e4d9fb' },
   seeMoreText: { fontSize: 12.5, fontWeight: '800', color: colors.violet },
   seeMoreArrow: { fontSize: 16, fontWeight: '800', color: colors.violet, lineHeight: 16 },

@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { COURSES } from '../../src/courses';
+import { coursesFor } from '../../src/coursesBn';
 import { useData } from '../../src/data';
+import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
 import { Bar, Card, ScreenTitle } from '../../src/ui';
 
@@ -14,29 +15,31 @@ const quizId = (course: string, i: number) => `quiz:${course}:${i}`;
 
 export default function LearningScreen() {
   const router = useRouter();
+  const { language, t, fmtN } = useLang();
   const { arcade, completeActivity } = useData();
   const done = arcade.done ?? {};
   const points = arcade.points ?? 0;
 
-  const [openCourse, setOpenCourse] = useState<string | null>(COURSES[0]?.key ?? null);
+  const courses = coursesFor(language);
+  const [openCourse, setOpenCourse] = useState<string | null>(courses[0]?.key ?? null);
   const [openLecture, setOpenLecture] = useState<string | null>(null);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <ScreenTitle title="Learning" subtitle="Money courses & quizzes" />
+        <ScreenTitle title={t('learning.title')} subtitle={t('learning.subtitle')} />
 
         <Card style={styles.hero}>
           <View style={styles.row}>
             <View>
-              <Text style={styles.heroLabel}>TakaPoints earned</Text>
-              <Text style={styles.heroBig}>⭐ {points}</Text>
+              <Text style={styles.heroLabel}>{t('learning.pointsEarned')}</Text>
+              <Text style={styles.heroBig}>⭐ {fmtN(points)}</Text>
             </View>
             <Ionicons name="school" size={40} color="rgba(255,255,255,0.85)" />
           </View>
         </Card>
 
-        {COURSES.map((course) => {
+        {courses.map((course) => {
           const total = course.lectures.length;
           const completed = course.lectures.filter((_, i) => done[lecId(course.key, i)]).length;
           const pct = total > 0 ? completed / total : 0;
@@ -62,7 +65,7 @@ export default function LearningScreen() {
                   <Bar pct={pct} color={colors.violet} />
                 </View>
                 <Text style={styles.progressText}>
-                  {completed}/{total}
+                  {fmtN(completed)}/{fmtN(total)}
                 </Text>
               </View>
 
@@ -84,7 +87,7 @@ export default function LearningScreen() {
                           color={isDone ? colors.green : colors.faint}
                         />
                         <Text style={[styles.lectureTitle, isDone && styles.lectureTitleDone]}>
-                          Lecture {i + 1}: {lec.title}
+                          {t('learning.lecture', { n: fmtN(i + 1), title: lec.title })}
                         </Text>
                         <Ionicons name={lecOpen ? 'chevron-up' : 'chevron-down'} size={16} color={colors.muted} />
                       </Pressable>
@@ -102,13 +105,13 @@ export default function LearningScreen() {
                             {isDone ? (
                               <View style={[styles.actionBtn, styles.completedBtn]}>
                                 <Ionicons name="checkmark" size={15} color={colors.green} />
-                                <Text style={styles.completedText}>Completed</Text>
+                                <Text style={styles.completedText}>{t('learning.completed')}</Text>
                               </View>
                             ) : (
                               <Pressable
                                 style={[styles.actionBtn, styles.completeBtn]}
                                 onPress={() => completeActivity(lecId(course.key, i), 5)}>
-                                <Text style={styles.completeText}>Mark as complete</Text>
+                                <Text style={styles.completeText}>{t('learning.markComplete')}</Text>
                               </Pressable>
                             )}
 
@@ -122,13 +125,13 @@ export default function LearningScreen() {
                                 })
                               }>
                               <Ionicons name="help-circle" size={15} color="#fff" />
-                              <Text style={styles.quizText}>{quizDone ? 'Retake quiz' : 'Take quiz'}</Text>
+                              <Text style={styles.quizText}>
+                                {quizDone ? t('learning.retakeQuiz') : t('learning.takeQuiz')}
+                              </Text>
                               {quizDone && <Ionicons name="checkmark-circle" size={14} color="#fff" />}
                             </Pressable>
                           </View>
-                          {!isDone && (
-                            <Text style={styles.lockHint}>Mark the lecture complete to unlock its quiz.</Text>
-                          )}
+                          {!isDone && <Text style={styles.lockHint}>{t('learning.lockHint')}</Text>}
                         </View>
                       )}
                     </View>
@@ -138,7 +141,7 @@ export default function LearningScreen() {
           );
         })}
 
-        <Text style={styles.footnote}>More courses coming soon.</Text>
+        <Text style={styles.footnote}>{t('learning.moreSoon')}</Text>
       </ScrollView>
     </SafeAreaView>
   );

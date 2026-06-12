@@ -4,17 +4,19 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { COURSES } from '../../src/courses';
+import { coursesFor } from '../../src/coursesBn';
 import { useData } from '../../src/data';
+import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
 import { Card } from '../../src/ui';
 
 export default function QuizScreen() {
   const router = useRouter();
+  const { language, t, fmtN } = useLang();
   const params = useLocalSearchParams<{ course: string; lecture: string }>();
   const { completeActivity } = useData();
 
-  const course = COURSES.find((c) => c.key === params.course);
+  const course = coursesFor(language).find((c) => c.key === params.course);
   const lectureIndex = parseInt(params.lecture ?? '0', 10);
   const lecture = course?.lectures[lectureIndex];
 
@@ -26,9 +28,9 @@ export default function QuizScreen() {
   if (!course || !lecture) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <Header title="Quiz" onBack={() => router.back()} />
+        <Header title={t('learning.title')} onBack={() => router.back()} />
         <View style={styles.center}>
-          <Text style={styles.muted}>Quiz not found.</Text>
+          <Text style={styles.muted}>{t('quiz.notFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -72,16 +74,16 @@ export default function QuizScreen() {
             <Ionicons name={passed ? 'trophy' : 'refresh'} size={40} color={passed ? colors.green : colors.amber} />
           </View>
           <Text style={styles.resultScore}>
-            {score} / {total}
+            {fmtN(score)} / {fmtN(total)}
           </Text>
           <Text style={styles.resultMsg}>
-            {passed ? 'Well done! You earned' : 'Good try — review and retake.'} {passed ? `+${score * 2} TakaPoints` : ''}
+            {passed ? t('quiz.passMsg', { n: fmtN(score * 2) }) : t('quiz.failMsg')}
           </Text>
           <Pressable style={styles.primaryBtn} onPress={() => router.back()}>
-            <Text style={styles.primaryBtnText}>Back to course</Text>
+            <Text style={styles.primaryBtnText}>{t('quiz.backToCourse')}</Text>
           </Pressable>
           <Pressable style={styles.secondaryBtn} onPress={restart}>
-            <Text style={styles.secondaryBtnText}>Retake quiz</Text>
+            <Text style={styles.secondaryBtnText}>{t('quiz.retake')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -90,13 +92,13 @@ export default function QuizScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Header title={`Lecture ${lectureIndex + 1} quiz`} onBack={() => router.back()} />
+      <Header title={t('quiz.lectureQuiz', { n: fmtN(lectureIndex + 1) })} onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.progressTrack}>
           <View style={[styles.progressFill, { width: `${((index + (picked !== null ? 1 : 0)) / total) * 100}%` }]} />
         </View>
         <Text style={styles.counter}>
-          Question {index + 1} of {total}
+          {t('quiz.questionOf', { a: fmtN(index + 1), b: fmtN(total) })}
         </Text>
 
         <Card>
@@ -122,7 +124,7 @@ export default function QuizScreen() {
 
           {picked !== null && (
             <Text style={styles.feedback}>
-              {picked === question.correct ? '✅ Correct! ' : '❌ '}
+              {picked === question.correct ? t('quiz.correctPrefix') : t('quiz.wrongPrefix')}
               {question.why}
             </Text>
           )}
@@ -130,7 +132,7 @@ export default function QuizScreen() {
 
         {picked !== null && (
           <Pressable style={styles.primaryBtn} onPress={next}>
-            <Text style={styles.primaryBtnText}>{index + 1 < total ? 'Next' : 'See result'}</Text>
+            <Text style={styles.primaryBtnText}>{index + 1 < total ? t('quiz.next') : t('quiz.seeResult')}</Text>
           </Pressable>
         )}
       </ScrollView>
