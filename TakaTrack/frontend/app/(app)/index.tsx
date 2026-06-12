@@ -192,7 +192,11 @@ export default function HomeScreen() {
           <SectionTitle>{t('home.expenseProgress')}</SectionTitle>
           {categories.map((c) => {
             const s = spentForCategory(c.key);
-            const p = c.alloc > 0 ? s / c.alloc : 0;
+            const noBudget = c.alloc <= 0;
+            // No allocation yet (e.g. Others at 0/0): show a full, safe bar until the
+            // user sets a budget; after that it's the normal spent/allocated ratio.
+            const p = noBudget ? 1 : s / c.alloc;
+            const barColor = noBudget && s <= 0 ? colors.green : ringColor(p);
             return (
               <View key={c.key} style={{ marginBottom: 9 }}>
                 <View style={styles.lineRow}>
@@ -203,7 +207,7 @@ export default function HomeScreen() {
                     ৳{fmtN(s)} / {fmtN(c.alloc)}
                   </Text>
                 </View>
-                <Bar pct={p} color={ringColor(p)} />
+                <Bar pct={p} color={barColor} />
               </View>
             );
           })}
