@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 import { colors, radius, shadow } from './theme';
@@ -47,16 +48,23 @@ export function Divider({ style }: { style?: ViewStyle }) {
 }
 
 export function Bar({ pct, color }: { pct: number; color?: string }) {
+  const target = Math.max(0, Math.min(pct, 1));
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: target,
+      duration: 600,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false, // animating layout width
+    }).start();
+  }, [target, anim]);
+
+  const width = anim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+
   return (
     <View style={styles.barTrack}>
-      <View
-        style={{
-          width: `${Math.max(0, Math.min(pct, 1)) * 100}%`,
-          height: '100%',
-          borderRadius: 999,
-          backgroundColor: color ?? colors.teal,
-        }}
-      />
+      <Animated.View style={{ width, height: '100%', borderRadius: 999, backgroundColor: color ?? colors.teal }} />
     </View>
   );
 }

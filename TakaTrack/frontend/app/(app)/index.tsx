@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -33,6 +35,10 @@ export default function HomeScreen() {
 
   const spent = totalSpent();
   const pct = income > 0 ? spent / income : 0;
+
+  // Count the hero amount up from 0; the ring and the bar fill from the same value.
+  const animSpent = useCountUp(loading ? 0 : spent);
+  const animRatio = income > 0 ? Math.min(animSpent / income, 1) : 0;
 
   // Ask Gemini for a fresh insight. Passing the current one as `avoid` makes the
   // reload button produce a different angle instead of repeating.
@@ -115,34 +121,37 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {/* Hero */}
-        <Card style={styles.hero}>
-          <View style={styles.row}>
-            <View>
-              <Text style={styles.heroLabel}>{t('home.spentThisMonth')}</Text>
-              <Text style={styles.heroBig}>
-                ৳{fmtN(spent)} <Text style={styles.heroSub}>/ {fmtN(income)}</Text>
-              </Text>
+        <FadeInUp delay={0}>
+          <Card style={styles.hero}>
+            <View style={styles.row}>
+              <View>
+                <Text style={styles.heroLabel}>{t('home.spentThisMonth')}</Text>
+                <Text style={styles.heroBig}>
+                  ৳{fmtN(animSpent)} <Text style={styles.heroSub}>/ {fmtN(income)}</Text>
+                </Text>
+              </View>
+              <Ring
+                size={84}
+                stroke={9}
+                pct={animRatio}
+                color="#fff"
+                trackColor="rgba(255,255,255,0.3)"
+                labelColor="#fff"
+                label={`${fmtN(animRatio * 100)}%`}
+              />
             </View>
-            <Ring
-              size={84}
-              stroke={9}
-              pct={pct}
-              color="#fff"
-              trackColor="rgba(255,255,255,0.3)"
-              labelColor="#fff"
-              label={`${fmtN(pct * 100)}%`}
-            />
-          </View>
-          <View style={styles.heroBar}>
-            <View style={{ width: `${Math.min(pct, 1) * 100}%`, height: '100%', backgroundColor: '#fff', borderRadius: 999 }} />
-          </View>
-          <View style={[styles.row, { marginTop: 10 }]}>
-            <Text style={styles.pill}>⭐ {t('home.takaPoints', { n: fmtN(arcade.points) })}</Text>
-            <Text style={styles.pill}>📂 {t('home.categories', { n: fmtN(categories.length) })}</Text>
-          </View>
-        </Card>
+            <View style={styles.heroBar}>
+              <View style={{ width: `${animRatio * 100}%`, height: '100%', backgroundColor: '#fff', borderRadius: 999 }} />
+            </View>
+            <View style={[styles.row, { marginTop: 10 }]}>
+              <Text style={styles.pill}>⭐ {t('home.takaPoints', { n: fmtN(arcade.points) })}</Text>
+              <Text style={styles.pill}>📂 {t('home.categories', { n: fmtN(categories.length) })}</Text>
+            </View>
+          </Card>
+        </FadeInUp>
 
         {/* AI insight (Gemini) */}
+        <FadeInUp delay={90}>
         <Card style={styles.ai}>
           <View style={styles.aiHeader}>
             <Text style={styles.aiTag}>{t('home.aiInsight')}</Text>
@@ -158,22 +167,26 @@ export default function HomeScreen() {
               )}
             </Pressable>
           </View>
-          {insightError ? (
-            <Text style={[styles.aiText, { color: colors.red }]}>⚠️ {insightError}</Text>
-          ) : insight ? (
-            <Text style={styles.aiText}>{insight}</Text>
-          ) : (
-            <Text style={[styles.aiText, { fontStyle: 'italic', opacity: 0.7 }]}>
-              {t('home.readingFinances')}
-            </Text>
-          )}
+          <FadeSwap trigger={insightError ?? insight ?? 'loading'}>
+            {insightError ? (
+              <Text style={[styles.aiText, { color: colors.red }]}>⚠️ {insightError}</Text>
+            ) : insight ? (
+              <Text style={styles.aiText}>{insight}</Text>
+            ) : (
+              <Text style={[styles.aiText, { fontStyle: 'italic', opacity: 0.7 }]}>
+                {t('home.readingFinances')}
+              </Text>
+            )}
+          </FadeSwap>
           <Pressable style={styles.seeMoreBtn} onPress={() => router.push('/insights')}>
             <Text style={styles.seeMoreText}>{t('home.seeMore')}</Text>
             <Text style={styles.seeMoreArrow}>›</Text>
           </Pressable>
         </Card>
+        </FadeInUp>
 
         {/* Expense progress by category */}
+        <FadeInUp delay={180}>
         <Card>
           <SectionTitle>{t('home.expenseProgress')}</SectionTitle>
           {categories.map((c) => {
@@ -194,8 +207,10 @@ export default function HomeScreen() {
             );
           })}
         </Card>
+        </FadeInUp>
 
         {/* Savings progress */}
+        <FadeInUp delay={270}>
         <Card>
           <SectionTitle>{t('home.savingsProgress')}</SectionTitle>
           {goals.length === 0 ? (
@@ -219,9 +234,65 @@ export default function HomeScreen() {
             })
           )}
         </Card>
+        </FadeInUp>
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+// Count a number up from 0 to `target` on mount / when target changes.
+function useCountUp(target: number, duration = 900) {
+  const [value, setValue] = useState(0);
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const id = anim.addListener((s) => setValue(s.value));
+    Animated.timing(anim, {
+      toValue: target,
+      duration,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+    return () => anim.removeListener(id);
+  }, [target, duration, anim]);
+  return value;
+}
+
+// Fade + slide a card in on mount, with an optional stagger delay.
+function FadeInUp({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 420,
+      delay,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [anim, delay]);
+  return (
+    <Animated.View
+      style={{
+        opacity: anim,
+        transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
+      }}>
+      {children}
+    </Animated.View>
+  );
+}
+
+// Cross-fade children whenever `trigger` changes (used for the AI insight text).
+function FadeSwap({ children, trigger }: { children: React.ReactNode; trigger: string }) {
+  const anim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    anim.setValue(0);
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 350,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [trigger, anim]);
+  return <Animated.View style={{ opacity: anim }}>{children}</Animated.View>;
 }
 
 const styles = StyleSheet.create({
