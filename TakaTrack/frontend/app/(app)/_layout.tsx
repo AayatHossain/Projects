@@ -33,6 +33,7 @@ export default function AppLayout() {
         <Tabs.Screen name="goals" options={{ title: 'Goals', tabBarIcon: icon('🎯') }} />
         <Tabs.Screen name="arcade" options={{ title: 'Arcade', tabBarIcon: icon('🎮') }} />
         <Tabs.Screen name="budget" options={{ title: 'Budget', tabBarIcon: icon('📊') }} />
+        <Tabs.Screen name="assistant" options={{ title: 'Assistant', tabBarIcon: icon('🤖') }} />
       </Tabs>
     </DataProvider>
   );
