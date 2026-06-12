@@ -69,6 +69,19 @@ export const api = {
 
   me: (token: string) => request<ApiUser>('/auth/me', { token }),
 
+  ai: {
+    // Proxy to the server-side LLM. The app never holds an AI key.
+    chat: (
+      token: string,
+      body: {
+        system: string;
+        messages: { role: 'user' | 'model'; text: string }[];
+        temperature?: number;
+        max_tokens?: number;
+      },
+    ) => request<{ text: string }>('/ai/chat', { method: 'POST', token, body }),
+  },
+
   data: {
     overview: (token: string) => request<Overview>('/data/overview', { token }),
 

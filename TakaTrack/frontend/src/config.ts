@@ -34,6 +34,10 @@ function detectHost(): string | null {
 }
 
 function resolveApiUrl(): string {
+  // Production / standalone builds set this (e.g. the Render URL) since there is
+  // no Metro dev server to auto-detect from. Takes precedence over everything.
+  if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
+
   if (MANUAL_URL) return MANUAL_URL;
 
   const host = detectHost();

@@ -14,7 +14,7 @@ import { Card } from '../../src/ui';
 export default function InsightsScreen() {
   const router = useRouter();
   const { t, language } = useLang();
-  const { user } = useAuth();
+  const { token, user } = useAuth();
   const { income, categories, expenses, goals, arcade, spentForCategory, totalSpent } = useData();
 
   const [items, setItems] = useState<string[]>([]);
@@ -26,6 +26,7 @@ export default function InsightsScreen() {
     setError(null);
     try {
       const list = await generateInsights(
+        token ?? '',
         { name: user?.name ?? 'User', income, categories, expenses, goals, arcade, spentForCategory, totalSpent },
         5,
         language,
@@ -37,7 +38,7 @@ export default function InsightsScreen() {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, income, categories, expenses, goals, arcade, language]);
+  }, [token, user, income, categories, expenses, goals, arcade, language]);
 
   // Generate once on open.
   useEffect(() => {

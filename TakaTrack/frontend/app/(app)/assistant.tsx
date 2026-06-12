@@ -20,7 +20,7 @@ import { colors } from '../../src/theme';
 
 export default function AssistantScreen() {
   const { t, language } = useLang();
-  const { user } = useAuth();
+  const { token, user } = useAuth();
   const { income, categories, expenses, goals, arcade, spentForCategory, totalSpent } = useData();
 
   const [turns, setTurns] = useState<ChatTurn[]>([]);
@@ -61,7 +61,7 @@ export default function AssistantScreen() {
     requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
 
     try {
-      const reply = await askAI(next, buildContext());
+      const reply = await askAI(token ?? '', next, buildContext());
       setTurns((prev) => [...prev, { role: 'model', text: reply }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : t('assistant.error'));

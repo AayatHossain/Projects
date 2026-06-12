@@ -24,7 +24,7 @@ import { Bar, Card, Ring, ringColor, SectionTitle } from '../../src/ui';
 export default function HomeScreen() {
   const router = useRouter();
   const { language, toggle, t, catLabel, goalLabel, fmtN } = useLang();
-  const { user, logout } = useAuth();
+  const { token, user, logout } = useAuth();
   const { loading, income, categories, expenses, goals, arcade, spentForCategory, totalSpent, refresh } =
     useData();
   const [refreshing, setRefreshing] = useState(false);
@@ -47,6 +47,7 @@ export default function HomeScreen() {
     setInsightError(null);
     try {
       const text = await generateInsight(
+        token ?? '',
         { name: user?.name ?? 'User', income, categories, expenses, goals, arcade, spentForCategory, totalSpent },
         insight ? [insight] : [],
         language,
@@ -58,7 +59,7 @@ export default function HomeScreen() {
       setInsightLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, income, categories, expenses, goals, arcade, insight, language]);
+  }, [token, user, income, categories, expenses, goals, arcade, insight, language]);
 
   // Generate one automatically once the financial data has loaded.
   useEffect(() => {

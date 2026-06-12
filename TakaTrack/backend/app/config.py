@@ -25,5 +25,10 @@ class Settings(BaseSettings):
     # Comma-separated CORS origins (use * for local dev).
     cors_origins: str = "*"
 
+    # --- AI (server-side, never shipped in the app) ---
+    # OpenAI key used by the /ai proxy. Set via env var OPENAI_API_KEY.
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+
 
 settings = Settings()
