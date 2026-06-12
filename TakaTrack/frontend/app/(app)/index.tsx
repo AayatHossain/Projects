@@ -44,9 +44,14 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.hello}>Welcome,</Text>
-            <Text style={styles.name}>{user?.name ?? 'there'} 👋</Text>
+          <View style={styles.headerLeft}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{(user?.name?.[0] ?? 'U').toUpperCase()}</Text>
+            </View>
+            <View>
+              <Text style={styles.hello}>Welcome back</Text>
+              <Text style={styles.name}>{user?.name ?? 'there'}</Text>
+            </View>
           </View>
           <Pressable style={styles.logout} onPress={logout}>
             <Text style={styles.logoutText}>Log out</Text>
@@ -68,6 +73,7 @@ export default function HomeScreen() {
               pct={pct}
               color="#fff"
               trackColor="rgba(255,255,255,0.3)"
+              labelColor="#fff"
               label={`${Math.round(pct * 100)}%`}
             />
           </View>
@@ -76,7 +82,7 @@ export default function HomeScreen() {
           </View>
           <View style={[styles.row, { marginTop: 10 }]}>
             <Text style={styles.pill}>⭐ {arcade.points} TakaPoints</Text>
-            <Text style={styles.pill}>📂 {categories.length} envelopes</Text>
+            <Text style={styles.pill}>📂 {categories.length} categories</Text>
           </View>
         </Card>
 
@@ -90,9 +96,9 @@ export default function HomeScreen() {
           </Text>
         </Card>
 
-        {/* Expense progress by envelope */}
+        {/* Expense progress by category */}
         <Card>
-          <SectionTitle>Expense progress (by envelope)</SectionTitle>
+          <SectionTitle>Expense progress (by category)</SectionTitle>
           {categories.map((c) => {
             const s = spentForCategory(c.key);
             const p = c.alloc > 0 ? s / c.alloc : 0;
@@ -145,10 +151,13 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
   scroll: { padding: 14, paddingBottom: 24 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, marginTop: 4 },
-  hello: { fontSize: 14, color: colors.muted },
-  name: { fontSize: 24, fontWeight: '800', color: colors.ink },
-  logout: { backgroundColor: '#fff', borderWidth: 1, borderColor: colors.line, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, marginTop: 6 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.tealTint, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#000' },
+  avatarText: { color: colors.tealDeep, fontWeight: '800', fontSize: 19 },
+  hello: { fontSize: 13, color: colors.muted },
+  name: { fontSize: 22, fontWeight: '800', color: colors.ink, letterSpacing: -0.3 },
+  logout: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#000', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 8 },
   logoutText: { color: colors.red, fontWeight: '700', fontSize: 12 },
   hero: { backgroundColor: colors.teal, borderWidth: 0 },
   heroLabel: { fontSize: 12, color: 'rgba(255,255,255,0.9)' },
@@ -157,10 +166,10 @@ const styles = StyleSheet.create({
   heroBar: { height: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.3)', overflow: 'hidden', marginTop: 10 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pill: { color: '#fff', fontSize: 11, fontWeight: '700', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, overflow: 'hidden' },
-  ai: { backgroundColor: '#faf5ff', borderLeftWidth: 5, borderLeftColor: '#7c3aed', borderColor: '#f0e7ff' },
-  aiTag: { fontSize: 9, fontWeight: '800', color: '#7c3aed', marginBottom: 6 },
-  aiText: { fontSize: 12.5, color: '#3b0764', lineHeight: 19 },
-  lineRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  lineLabel: { fontSize: 12, color: colors.ink },
-  lineMuted: { fontSize: 12, color: colors.muted },
+  ai: { backgroundColor: colors.violetTint, borderLeftWidth: 5, borderLeftColor: colors.violet, borderColor: '#ece5fb' },
+  aiTag: { fontSize: 10, fontWeight: '800', color: colors.violet, marginBottom: 6, letterSpacing: 0.5 },
+  aiText: { fontSize: 13, color: '#3b0764', lineHeight: 20 },
+  lineRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  lineLabel: { fontSize: 13, color: colors.ink2, fontWeight: '600' },
+  lineMuted: { fontSize: 12.5, color: colors.muted, fontWeight: '600' },
 });

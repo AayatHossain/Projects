@@ -18,8 +18,15 @@ export default function AppLayout() {
           headerShown: false,
           tabBarActiveTintColor: colors.teal,
           tabBarInactiveTintColor: colors.muted,
-          tabBarStyle: { backgroundColor: '#fff', borderTopColor: colors.line, height: 60, paddingBottom: 6, paddingTop: 6 },
-          tabBarLabelStyle: { fontSize: 10, fontWeight: '700' },
+          tabBarStyle: {
+            backgroundColor: '#fff',
+            borderTopColor: colors.lineStrong,
+            borderTopWidth: 1,
+            height: 64,
+            paddingBottom: 8,
+            paddingTop: 8,
+          },
+          tabBarLabelStyle: { fontSize: 10.5, fontWeight: '700' },
         }}>
         <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: icon('🏠') }} />
         <Tabs.Screen name="expenses" options={{ title: 'Expenses', tabBarIcon: icon('💸') }} />

@@ -32,6 +32,7 @@ DEFAULT_CATEGORIES = [
     {"key": "utilities", "label": "Utilities & Rent", "icon": "🏠", "alloc": 11000},
     {"key": "lifestyle", "label": "Lifestyle & Family", "icon": "👨‍👩‍👧", "alloc": 4000},
     {"key": "savings", "label": "Savings", "icon": "🏦", "alloc": 2000},
+    {"key": "others", "label": "Others", "icon": "🗂️", "alloc": 0},
 ]
 DEFAULT_GOALS = [
     {"name": "Eid Shopping", "icon": "🛍️", "target": 15000, "saved": 0, "perDay": 200},
@@ -53,6 +54,19 @@ def _seed_if_empty(uid: str) -> None:
     goals = {uuid.uuid4().hex: dict(g) for g in DEFAULT_GOALS}
     ref(f"{_root(uid)}/goals").set(goals)
     ref(f"{_root(uid)}/arcade").set({"points": 0, "done": {}})
+
+
+def _ensure_default_categories(uid: str, budget: dict) -> list[dict]:
+    """Add any default categories missing from an existing user's budget
+    (e.g. 'others' added after their account was created). Keeps existing
+    order and the user's own allocations; appends missing ones."""
+    cats = budget.get("categories") or []
+    existing = {c.get("key") for c in cats}
+    missing = [dict(dc) for dc in DEFAULT_CATEGORIES if dc["key"] not in existing]
+    if missing:
+        cats = cats + missing
+        ref(f"{_root(uid)}/budget/categories").set(cats)
+    return cats
 
 
 def _list_with_ids(node: dict | None) -> list[dict]:
@@ -103,14 +117,15 @@ def overview(user: UserOut = Depends(current_user)):
     """Everything the app needs in one call (used by every tab)."""
     _seed_if_empty(user.uid)
     root = ref(_root(user.uid)).get() or {}
-    budget = root.get("budget", {})
+    budget = root.get("budget", {}) or {}
+    categories = _ensure_default_categories(user.uid, budget)
     expenses = _list_with_ids(root.get("expenses"))
     expenses.sort(key=lambda e: e.get("ts", 0), reverse=True)
     goals = _list_with_ids(root.get("goals"))
     arcade = root.get("arcade", {"points": 0, "done": {}})
     return {
         "income": budget.get("income", DEFAULT_INCOME),
-        "categories": budget.get("categories", DEFAULT_CATEGORIES),
+        "categories": categories,
         "expenses": expenses,
         "goals": goals,
         "arcade": arcade,

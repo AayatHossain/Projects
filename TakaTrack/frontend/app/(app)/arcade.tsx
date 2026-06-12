@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BADGES, QUIZ, QuizQuestion, SCENARIOS, Scenario } from '../../src/content';
 import { useData } from '../../src/data';
 import { colors } from '../../src/theme';
-import { Card, SectionTitle } from '../../src/ui';
+import { Card, ScreenTitle, SectionTitle } from '../../src/ui';
 
 function ScenarioCard({
   scenario,
@@ -106,7 +106,7 @@ export default function ArcadeScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>Literacy Arcade</Text>
+        <ScreenTitle title="Literacy Arcade" subtitle="Learn money habits, earn points" />
 
         <Card style={styles.hero}>
           <View style={styles.row}>
@@ -175,12 +175,12 @@ const styles = StyleSheet.create({
   heroBig: { fontSize: 25, fontWeight: '800', color: '#fff', marginTop: 2 },
   scn: { backgroundColor: '#faf5ff', borderColor: '#ede9fe', borderWidth: 2 },
   scnText: { fontSize: 12.5, color: colors.ink, lineHeight: 19, marginBottom: 4 },
-  opt: { borderWidth: 1, borderColor: colors.line, backgroundColor: '#fff', borderRadius: 11, padding: 10, marginTop: 7 },
-  optGood: { borderColor: colors.green, backgroundColor: '#f0fdf4' },
-  optBad: { borderColor: colors.red, backgroundColor: '#fef2f2' },
-  optText: { fontSize: 12.5, color: colors.ink },
-  feedback: { fontSize: 12, color: '#334155', marginTop: 8, backgroundColor: '#f8fafc', padding: 9, borderRadius: 10, lineHeight: 18 },
-  qText: { fontSize: 12.5, fontWeight: '600', color: colors.ink, marginBottom: 2 },
+  opt: { borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: '#fff', borderRadius: 11, padding: 12, marginTop: 8 },
+  optGood: { borderColor: colors.green, backgroundColor: colors.greenTint },
+  optBad: { borderColor: colors.red, backgroundColor: colors.redTint },
+  optText: { fontSize: 13, color: colors.ink2, fontWeight: '500' },
+  feedback: { fontSize: 12.5, color: colors.body, marginTop: 9, backgroundColor: '#f1f5f9', padding: 11, borderRadius: 10, lineHeight: 19 },
+  qText: { fontSize: 13.5, fontWeight: '700', color: colors.ink2, marginBottom: 3 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   badge: { width: 64, alignItems: 'center' },
   badgeIcon: { width: 46, height: 46, borderRadius: 13, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center', marginBottom: 3 },

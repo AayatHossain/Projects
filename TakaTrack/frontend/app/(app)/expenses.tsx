@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CATEGORY_GROUPS } from '../../src/content';
 import { useData } from '../../src/data';
 import { colors } from '../../src/theme';
-import { Card, fmt, SectionTitle } from '../../src/ui';
+import { Card, Divider, fmt, ScreenTitle, SectionTitle } from '../../src/ui';
 
 type Selected = { catKey: string; catLabel: string; note: string };
 
@@ -84,14 +84,15 @@ export default function ExpensesScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <Text style={styles.title}>Expenses</Text>
+          <ScreenTitle title="Expenses" subtitle="Log spending in a tap" />
 
           <Card>
-            <SectionTitle>Quick log — tap a category</SectionTitle>
+            <Text style={styles.enterHeading}>Enter expense details</Text>
+            <Divider style={styles.headingDivider} />
             {CATEGORY_GROUPS.map((g) => {
               const items = [...g.items, ...(customItems[g.key] ?? [])];
               return (
-                <View key={g.key} style={{ marginBottom: 12 }}>
+                <View key={g.key} style={styles.group}>
                   <Text style={styles.groupHead}>
                     {g.icon} {g.label}
                   </Text>
@@ -199,12 +200,15 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { padding: 14, paddingBottom: 24 },
   title: { fontSize: 24, fontWeight: '800', color: colors.ink, marginBottom: 12, marginTop: 4 },
-  groupHead: { fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 6 },
+  enterHeading: { fontSize: 18, fontWeight: '800', color: colors.ink, letterSpacing: -0.2 },
+  headingDivider: { marginTop: 12, marginBottom: 2 },
+  group: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.lineStrong },
+  groupHead: { fontSize: 12.5, fontWeight: '800', color: colors.body, marginBottom: 7 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: { borderWidth: 1, borderColor: colors.line, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7 },
+  chip: { borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8 },
   chipOn: { backgroundColor: colors.teal, borderColor: colors.teal },
   chipAdd: { borderStyle: 'dashed', borderColor: colors.teal },
-  chipText: { fontSize: 11.5, color: colors.ink },
+  chipText: { fontSize: 12.5, color: colors.ink2, fontWeight: '500' },
   chipTextOn: { color: '#fff', fontWeight: '700' },
   customRow: { flexDirection: 'row', gap: 6, marginTop: 8 },
   customInput: { flex: 1, borderWidth: 1, borderColor: colors.line, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 13, color: colors.ink },
@@ -216,10 +220,10 @@ const styles = StyleSheet.create({
   amtInput: { width: 96 },
   addBtn: { backgroundColor: colors.teal, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 11 },
   addBtnText: { color: '#fff', fontWeight: '800', fontSize: 13 },
-  entry: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: colors.line },
-  entryNote: { fontSize: 13, color: colors.ink },
-  entryCat: { fontSize: 10, color: colors.muted, marginTop: 1 },
-  entryAmt: { fontSize: 14, fontWeight: '700', color: colors.ink },
+  entry: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: colors.lineStrong },
+  entryNote: { fontSize: 13.5, color: colors.ink2, fontWeight: '600' },
+  entryCat: { fontSize: 10.5, color: colors.muted, marginTop: 2 },
+  entryAmt: { fontSize: 15, fontWeight: '800', color: colors.ink },
   muted: { fontSize: 12, color: colors.muted },
   hint: { fontSize: 10, color: colors.muted, marginTop: 8 },
 });

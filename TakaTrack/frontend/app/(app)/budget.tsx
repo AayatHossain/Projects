@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useData } from '../../src/data';
 import { colors } from '../../src/theme';
-import { Bar, Card, fmt, Ring, ringColor, SectionTitle } from '../../src/ui';
+import { Bar, Card, fmt, Ring, ringColor, ScreenTitle, SectionTitle } from '../../src/ui';
 
 export default function BudgetScreen() {
   const { income, categories, spentForCategory, setIncome, saveBudget } = useData();
@@ -64,7 +64,7 @@ export default function BudgetScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Budget Core</Text>
+        <ScreenTitle title="Budget Core" subtitle="Your monthly plan" />
 
         <Card>
           <SectionTitle>Monthly income</SectionTitle>
@@ -98,7 +98,7 @@ export default function BudgetScreen() {
             </Text>
           </View>
           {over > 0 ? (
-            <Text style={styles.warnText}>⚠️ Allocations exceed income by ৳{fmt(over)}. Trim an envelope or raise your income.</Text>
+            <Text style={styles.warnText}>⚠️ Allocations exceed income by ৳{fmt(over)}. Trim a category or raise your income.</Text>
           ) : (
             <Text style={styles.okText}>✅ ৳{fmt(income - allocTotal)} of income still unallocated.</Text>
           )}
@@ -106,7 +106,7 @@ export default function BudgetScreen() {
 
         <Card>
           <View style={[styles.row, { marginBottom: 10 }]}>
-            <Text style={styles.cardTitle}>Envelopes — allocated vs spent</Text>
+            <Text style={styles.cardTitle}>Categories — allocated vs spent</Text>
             {editing ? (
               <View style={styles.editActions}>
                 <Pressable onPress={() => setEditing(false)} style={styles.cancelBtn}>
@@ -165,9 +165,9 @@ export default function BudgetScreen() {
           })}
 
           {editing ? (
-            <Text style={styles.hint}>Set how much of your income goes to each envelope, then Save.</Text>
+            <Text style={styles.hint}>Set how much of your income goes to each category, then Save.</Text>
           ) : (
-            <Text style={styles.hint}>Logging an expense fills the matching envelope. Tap Edit to change allocations.</Text>
+            <Text style={styles.hint}>Logging an expense fills the matching category. Tap Edit to change allocations.</Text>
           )}
         </Card>
       </ScrollView>
@@ -214,15 +214,15 @@ const styles = StyleSheet.create({
   saveBtn: { backgroundColor: colors.teal, borderRadius: 9, paddingHorizontal: 14, paddingVertical: 6 },
   saveText: { fontSize: 12, fontWeight: '800', color: '#fff' },
 
-  editRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.line },
-  editName: { fontSize: 13, fontWeight: '700', color: colors.ink, flex: 1 },
+  editRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.lineStrong },
+  editName: { fontSize: 13.5, fontWeight: '700', color: colors.ink2, flex: 1 },
   allocInputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.line, borderRadius: 10, paddingHorizontal: 10, width: 130 },
   takaSmall: { fontSize: 14, fontWeight: '700', color: colors.muted },
   allocInput: { flex: 1, paddingVertical: 8, paddingHorizontal: 6, fontSize: 14, fontWeight: '700', color: colors.ink },
 
-  env: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.line },
+  env: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.lineStrong },
   envMeta: { flex: 1 },
-  envName: { fontSize: 13, fontWeight: '800', color: colors.ink },
-  muted: { fontSize: 12, color: colors.muted },
+  envName: { fontSize: 13.5, fontWeight: '800', color: colors.ink2 },
+  muted: { fontSize: 12.5, color: colors.muted, fontWeight: '500' },
   hint: { fontSize: 10, color: colors.muted, marginTop: 10 },
 });

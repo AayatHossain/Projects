@@ -14,7 +14,7 @@ import { Goal } from '../../src/api';
 import { GOAL_TEMPLATES } from '../../src/content';
 import { useData } from '../../src/data';
 import { colors } from '../../src/theme';
-import { Bar, Card, fmt, SectionTitle } from '../../src/ui';
+import { Bar, Card, fmt, ScreenTitle } from '../../src/ui';
 
 const ICONS = ['🎯', '🛍️', '🛡️', '🏠', '📱', '🚗', '🎓', '💍', '🕋', '✈️', '🏢', '🏡'];
 
@@ -134,7 +134,7 @@ export default function GoalsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Goals</Text>
+        <ScreenTitle title="My Goals" subtitle="Save toward what matters" />
 
         {goals.length === 0 ? (
           <Card>
@@ -153,9 +153,8 @@ export default function GoalsScreen() {
 
         {/* Create a goal */}
         <Card>
-          <SectionTitle>Create a goal</SectionTitle>
-
-          <Text style={styles.fieldLabel}>Start from a template (tap, then set your amount)</Text>
+          <Text style={styles.createHeading}>Create a goal</Text>
+          <Text style={styles.createSub}>Start from a template or create your own goal</Text>
           <View style={styles.tmpl}>
             {GOAL_TEMPLATES.map((t) => (
               <Pressable key={t.name} style={styles.tmplBtn} onPress={() => prefill(t)}>
@@ -215,8 +214,8 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   title: { fontSize: 24, fontWeight: '800', color: colors.ink, marginBottom: 12, marginTop: 4 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  goalName: { fontSize: 15, fontWeight: '800', color: colors.ink, flex: 1 },
-  muted: { fontSize: 12, color: colors.muted },
+  goalName: { fontSize: 16, fontWeight: '800', color: colors.ink, flex: 1, letterSpacing: -0.2 },
+  muted: { fontSize: 12.5, color: colors.muted, fontWeight: '500' },
   closeBtn: { position: 'absolute', top: 8, right: 10, zIndex: 2, width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
   closeText: { fontSize: 22, color: colors.muted, fontWeight: '700', lineHeight: 24 },
   depositRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 },
@@ -224,11 +223,13 @@ const styles = StyleSheet.create({
   depInput: { flex: 1, borderWidth: 1, borderColor: colors.line, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: colors.ink },
   depBtn: { backgroundColor: colors.teal, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10 },
   depBtnText: { color: '#fff', fontWeight: '800', fontSize: 13 },
-  fieldLabel: { fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 6, marginTop: 4 },
+  createHeading: { fontSize: 18, fontWeight: '800', color: colors.ink, letterSpacing: -0.2 },
+  createSub: { fontSize: 13, color: colors.muted, marginTop: 3, marginBottom: 12 },
+  fieldLabel: { fontSize: 12.5, fontWeight: '800', color: colors.body, marginBottom: 7, marginTop: 4 },
   tmpl: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tmplBtn: { width: '47.5%', borderWidth: 1, borderColor: colors.line, backgroundColor: '#fff', borderRadius: 12, padding: 10 },
-  tmplIcon: { fontSize: 18, marginBottom: 2 },
-  tmplName: { fontSize: 12, fontWeight: '700', color: colors.ink },
+  tmplBtn: { width: '47.5%', borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: '#fff', borderRadius: 12, padding: 11 },
+  tmplIcon: { fontSize: 19, marginBottom: 3 },
+  tmplName: { fontSize: 12.5, fontWeight: '700', color: colors.ink2 },
   iconRow: { flexDirection: 'row', marginBottom: 6 },
   iconChip: { width: 40, height: 40, borderRadius: 10, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center', marginRight: 7, backgroundColor: '#fff' },
   iconChipOn: { borderColor: colors.teal, backgroundColor: '#ecfdf5' },

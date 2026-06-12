@@ -6,6 +6,8 @@ export const CATEGORY_GROUPS = [
   { key: 'transport', label: 'Transport', icon: '🚍', items: ['Rickshaw', 'CNG', 'Uber / Pathao', 'Bus', 'Metro rail'] },
   { key: 'utilities', label: 'Utilities & Rent', icon: '🏠', items: ['House rent', 'Current bill', 'Gas bill', 'Internet / Wasa'] },
   { key: 'lifestyle', label: 'Lifestyle & Family', icon: '👨‍👩‍👧', items: ['Family sending', 'Shopping', 'Mobile recharge'] },
+  { key: 'health', label: 'Health', icon: '🏥', items: ['Hospital bill', 'Medicine bill', 'Doctor visit'] },
+  { key: 'others', label: 'Others', icon: '🗂️', items: ['Zakat / Donation', 'Repairs'] },
 ];
 
 export const GOAL_TEMPLATES = [
