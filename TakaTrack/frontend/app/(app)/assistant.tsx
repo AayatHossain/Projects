@@ -12,11 +12,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { askGemini, ChatTurn } from '../../src/ai';
+import { askGemini, buildSnapshot, ChatTurn } from '../../src/ai';
 import { useAuth } from '../../src/auth';
 import { useData } from '../../src/data';
 import { colors } from '../../src/theme';
-import { fmt } from '../../src/ui';
 
 const GREETING =
   "Hi! I'm your TakaTrack assistant. Ask me about your spending, budget, or goals — like “Am I overspending?” or “How do I reach my savings goal faster?”";
@@ -31,51 +30,22 @@ export default function AssistantScreen() {
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
-  // Build a compact financial snapshot the model can reason over. Only summaries —
-  // no IDs or raw records the AI doesn't need.
+  // System instruction: chat style + the shared financial snapshot.
   function buildContext(): string {
-    const spent = totalSpent();
-    const left = income - spent;
-
-    const catLines = categories
-      .map((c) => {
-        const s = spentForCategory(c.key);
-        return `- ${c.label}: spent ৳${fmt(s)} of ৳${fmt(c.alloc)} budget`;
-      })
-      .join('\n');
-
-    const recent = expenses
-      .slice(0, 8)
-      .map((e) => `- ${e.catLabel}: ৳${fmt(e.amt)}${e.note ? ` (${e.note})` : ''}`)
-      .join('\n');
-
-    const goalLines = goals
-      .map((g) => {
-        const pct = g.target > 0 ? Math.round((g.saved / g.target) * 100) : 0;
-        return `- ${g.name}: saved ৳${fmt(g.saved)} of ৳${fmt(g.target)} (${pct}%), needs ~৳${fmt(g.perDay)}/day`;
-      })
-      .join('\n');
-
     return [
       `You are the in-app financial assistant for TakaTrack, a personal budgeting app used in Bangladesh. Currency is Bangladeshi Taka (৳).`,
       `Answer in a friendly, practical tone. Keep replies concise — usually 2 to 5 sentences. Give specific, actionable advice using the user's real numbers below. Do not invent data; if something isn't in the snapshot, say you don't have it. Don't give heavy financial/legal disclaimers.`,
       ``,
-      `=== USER FINANCIAL SNAPSHOT ===`,
-      `Name: ${user?.name ?? 'User'}`,
-      `Monthly income: ৳${fmt(income)}`,
-      `Total spent this period: ৳${fmt(spent)} (৳${fmt(left)} remaining)`,
-      ``,
-      `Budget categories:`,
-      catLines || '(none set)',
-      ``,
-      `Recent expenses:`,
-      recent || '(none yet)',
-      ``,
-      `Savings goals:`,
-      goalLines || '(none yet)',
-      ``,
-      `Reward points: ${arcade.points}`,
-      `=== END SNAPSHOT ===`,
+      buildSnapshot({
+        name: user?.name ?? 'User',
+        income,
+        categories,
+        expenses,
+        goals,
+        arcade,
+        spentForCategory,
+        totalSpent,
+      }),
     ].join('\n');
   }
 

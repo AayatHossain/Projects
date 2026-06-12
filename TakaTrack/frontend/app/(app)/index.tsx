@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { generateInsight } from '../../src/ai';
 import { useAuth } from '../../src/auth';
 import { useData } from '../../src/data';
 import { colors } from '../../src/theme';
@@ -17,12 +18,41 @@ import { Bar, Card, fmt, Ring, ringColor, SectionTitle } from '../../src/ui';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
-  const { loading, income, categories, goals, arcade, spentForCategory, totalSpent, refresh } =
+  const { loading, income, categories, expenses, goals, arcade, spentForCategory, totalSpent, refresh } =
     useData();
   const [refreshing, setRefreshing] = useState(false);
 
+  const [insight, setInsight] = useState('');
+  const [insightLoading, setInsightLoading] = useState(false);
+  const [insightError, setInsightError] = useState<string | null>(null);
+
   const spent = totalSpent();
   const pct = income > 0 ? spent / income : 0;
+
+  // Ask Gemini for a fresh insight. Passing the current one as `avoid` makes the
+  // reload button produce a different angle instead of repeating.
+  const newInsight = useCallback(async () => {
+    setInsightLoading(true);
+    setInsightError(null);
+    try {
+      const text = await generateInsight(
+        { name: user?.name ?? 'User', income, categories, expenses, goals, arcade, spentForCategory, totalSpent },
+        insight ? [insight] : [],
+      );
+      setInsight(text);
+    } catch (e) {
+      setInsightError(e instanceof Error ? e.message : 'Could not load insight.');
+    } finally {
+      setInsightLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, income, categories, expenses, goals, arcade, insight]);
+
+  // Generate one automatically once the financial data has loaded.
+  useEffect(() => {
+    if (!loading && !insight && !insightLoading) newInsight();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   async function onRefresh() {
     setRefreshing(true);
@@ -86,14 +116,31 @@ export default function HomeScreen() {
           </View>
         </Card>
 
-        {/* AI insight (placeholder) */}
+        {/* AI insight (Gemini) */}
         <Card style={styles.ai}>
-          <Text style={styles.aiTag}>AI INSIGHT · placeholder</Text>
-          <Text style={styles.aiText}>
-            You&apos;re spending a bit fast on Lifestyle this week. A small ৳40/day trim keeps you on
-            track and funds your Eid goal early.{' '}
-            <Text style={{ fontStyle: 'italic' }}>(AI-generated message — wired up later.)</Text>
-          </Text>
+          <View style={styles.aiHeader}>
+            <Text style={styles.aiTag}>AI INSIGHT</Text>
+            <Pressable
+              onPress={newInsight}
+              disabled={insightLoading}
+              hitSlop={8}
+              style={[styles.reloadBtn, insightLoading && { opacity: 0.5 }]}>
+              {insightLoading ? (
+                <ActivityIndicator size="small" color={colors.violet} />
+              ) : (
+                <Text style={styles.reloadIcon}>↻</Text>
+              )}
+            </Pressable>
+          </View>
+          {insightError ? (
+            <Text style={[styles.aiText, { color: colors.red }]}>⚠️ {insightError}</Text>
+          ) : insight ? (
+            <Text style={styles.aiText}>{insight}</Text>
+          ) : (
+            <Text style={[styles.aiText, { fontStyle: 'italic', opacity: 0.7 }]}>
+              Reading your finances…
+            </Text>
+          )}
         </Card>
 
         {/* Expense progress by category */}
@@ -178,7 +225,10 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pill: { color: '#fff', fontSize: 11, fontWeight: '700', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, overflow: 'hidden' },
   ai: { backgroundColor: colors.violetTint, borderLeftWidth: 5, borderLeftColor: colors.violet, borderColor: '#ece5fb' },
-  aiTag: { fontSize: 10, fontWeight: '800', color: colors.violet, marginBottom: 6, letterSpacing: 0.5 },
+  aiHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  reloadBtn: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#e4d9fb' },
+  reloadIcon: { fontSize: 16, fontWeight: '900', color: colors.violet, lineHeight: 18 },
+  aiTag: { fontSize: 10, fontWeight: '800', color: colors.violet, letterSpacing: 0.5 },
   aiText: { fontSize: 13, color: '#3b0764', lineHeight: 20 },
   lineRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   lineLabel: { fontSize: 13, color: colors.ink2, fontWeight: '600' },
