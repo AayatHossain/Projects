@@ -12,6 +12,7 @@ const en = {
   'common.cancel': 'Cancel',
   'common.delete': 'Delete',
   'common.add': 'Add',
+  'common.save': 'Save',
   'common.tryAgain': 'Try again.',
   'common.couldNotSave': 'Could not save',
   'lang.english': 'EN',
@@ -47,6 +48,45 @@ const en = {
   'expenses.enterAmountMsg': 'Type how much you spent.',
   'expenses.deleteTitle': 'Delete entry?',
 
+  'goals.title': 'My Goals',
+  'goals.subtitle': 'Save toward what matters',
+  'goals.noGoals': 'No goals yet — create one below.',
+  'goals.edit': '✎ Edit',
+  'goals.daysLeft': '~{n} days left',
+  'goals.reached': '🎉 reached!',
+  'goals.deposited': 'Deposited (৳)',
+  'goals.targetAmountField': 'Target amount (৳)',
+  'goals.targetDays': 'Target days',
+  'goals.dailyTargetUpdates': 'Daily target updates to ৳{n}/day.',
+  'goals.amountPlaceholder': 'amount',
+  'goals.deposit': '+ Deposit',
+  'goals.createHeading': 'Create a goal',
+  'goals.createSub': 'Start from a template or create your own goal',
+  'goals.suggested': 'suggested ৳{n}',
+  'goals.iconLabel': 'Icon',
+  'goals.nameLabel': 'Goal name',
+  'goals.namePlaceholder': 'e.g. "New laptop"',
+  'goals.targetAmount': 'Target amount',
+  'goals.perDayNote': "That's ৳{n}/day to reach it on time.",
+  'goals.addGoal': '+ Add goal',
+  'goals.couldNotDeposit': 'Could not deposit',
+  'goals.checkDepositedTitle': 'Check deposited',
+  'goals.checkDepositedMsg': 'Enter a valid saved amount.',
+  'goals.checkTargetTitle': 'Check target',
+  'goals.checkTargetMsg': 'Enter a target greater than 0.',
+  'goals.checkDaysTitle': 'Check days',
+  'goals.checkDaysMsg': 'Enter target days greater than 0.',
+  'goals.deleteTitle': 'Delete goal?',
+  'goals.nameNeededTitle': 'Name needed',
+  'goals.nameNeededMsg': 'Give your goal a name.',
+  'goals.amountNeededTitle': 'Amount needed',
+  'goals.amountNeededMsg': 'Enter how much you need to save.',
+  'goals.daysNeededTitle': 'Days needed',
+  'goals.daysNeededMsg': 'Enter how many days you want to reach it in.',
+  'goals.existsTitle': 'Already exists',
+  'goals.existsMsg': 'You already have a goal called "{name}".',
+  'goals.couldNotAdd': 'Could not add goal',
+
   // Category labels — keyed by the stable category `key` so they localize whether
   // the data comes from the backend or content.ts. Custom categories fall back to
   // their stored label.
@@ -66,6 +106,7 @@ const bn: Record<TKey, string> = {
   'common.cancel': 'বাতিল',
   'common.delete': 'মুছুন',
   'common.add': 'যোগ করুন',
+  'common.save': 'সংরক্ষণ',
   'common.tryAgain': 'আবার চেষ্টা করুন।',
   'common.couldNotSave': 'সংরক্ষণ করা যায়নি',
   'lang.english': 'EN',
@@ -101,6 +142,45 @@ const bn: Record<TKey, string> = {
   'expenses.enterAmountMsg': 'আপনি কত খরচ করেছেন লিখুন।',
   'expenses.deleteTitle': 'এন্ট্রি মুছবেন?',
 
+  'goals.title': 'আমার লক্ষ্য',
+  'goals.subtitle': 'যা গুরুত্বপূর্ণ তার জন্য সঞ্চয় করুন',
+  'goals.noGoals': 'এখনো কোনো লক্ষ্য নেই — নিচে একটি তৈরি করুন।',
+  'goals.edit': '✎ এডিট',
+  'goals.daysLeft': '~{n} দিন বাকি',
+  'goals.reached': '🎉 পূর্ণ হয়েছে!',
+  'goals.deposited': 'জমা (৳)',
+  'goals.targetAmountField': 'লক্ষ্য পরিমাণ (৳)',
+  'goals.targetDays': 'লক্ষ্য দিন',
+  'goals.dailyTargetUpdates': 'দৈনিক লক্ষ্য হবে ৳{n}/দিন।',
+  'goals.amountPlaceholder': 'পরিমাণ',
+  'goals.deposit': '+ জমা',
+  'goals.createHeading': 'নতুন লক্ষ্য তৈরি করুন',
+  'goals.createSub': 'টেমপ্লেট থেকে শুরু করুন বা নিজের লক্ষ্য তৈরি করুন',
+  'goals.suggested': 'প্রস্তাবিত ৳{n}',
+  'goals.iconLabel': 'আইকন',
+  'goals.nameLabel': 'লক্ষ্যের নাম',
+  'goals.namePlaceholder': 'যেমন "নতুন ল্যাপটপ"',
+  'goals.targetAmount': 'লক্ষ্য পরিমাণ',
+  'goals.perDayNote': 'অর্থাৎ সময়মতো পৌঁছাতে ৳{n}/দিন।',
+  'goals.addGoal': '+ লক্ষ্য যোগ করুন',
+  'goals.couldNotDeposit': 'জমা করা যায়নি',
+  'goals.checkDepositedTitle': 'জমা যাচাই করুন',
+  'goals.checkDepositedMsg': 'একটি সঠিক জমা পরিমাণ লিখুন।',
+  'goals.checkTargetTitle': 'লক্ষ্য যাচাই করুন',
+  'goals.checkTargetMsg': '০ এর বেশি একটি লক্ষ্য লিখুন।',
+  'goals.checkDaysTitle': 'দিন যাচাই করুন',
+  'goals.checkDaysMsg': '০ এর বেশি লক্ষ্য দিন লিখুন।',
+  'goals.deleteTitle': 'লক্ষ্য মুছবেন?',
+  'goals.nameNeededTitle': 'নাম প্রয়োজন',
+  'goals.nameNeededMsg': 'আপনার লক্ষ্যের একটি নাম দিন।',
+  'goals.amountNeededTitle': 'পরিমাণ প্রয়োজন',
+  'goals.amountNeededMsg': 'কত সঞ্চয় করতে চান লিখুন।',
+  'goals.daysNeededTitle': 'দিন প্রয়োজন',
+  'goals.daysNeededMsg': 'কত দিনে পৌঁছাতে চান লিখুন।',
+  'goals.existsTitle': 'ইতিমধ্যে আছে',
+  'goals.existsMsg': 'আপনার ইতিমধ্যে "{name}" নামে একটি লক্ষ্য আছে।',
+  'goals.couldNotAdd': 'লক্ষ্য যোগ করা যায়নি',
+
   'cat.food': 'খাবার ও বাজার',
   'cat.transport': 'যাতায়াত',
   'cat.utilities': 'ইউটিলিটি ও ভাড়া',
@@ -111,6 +191,44 @@ const bn: Record<TKey, string> = {
 };
 
 const dictionaries: Record<Lang, Record<TKey, string>> = { en, bn };
+
+// Expense item chips from content.ts. Keyed by the English (canonical) value, which
+// stays the stored identity — only the display is translated. Custom/free-text
+// items fall back to themselves.
+const ITEM_BN: Record<string, string> = {
+  Bazar: 'বাজার',
+  Restaurant: 'রেস্টুরেন্ট',
+  'Tea / Snacks (tong)': 'চা / নাস্তা (টং)',
+  Rickshaw: 'রিকশা',
+  CNG: 'সিএনজি',
+  'Uber / Pathao': 'উবার / পাঠাও',
+  Bus: 'বাস',
+  'Metro rail': 'মেট্রোরেল',
+  'House rent': 'বাসা ভাড়া',
+  'Current bill': 'বিদ্যুৎ বিল',
+  'Gas bill': 'গ্যাস বিল',
+  'Internet / Wasa': 'ইন্টারনেট / ওয়াসা',
+  'Family sending': 'পরিবারকে পাঠানো',
+  Shopping: 'কেনাকাটা',
+  'Mobile recharge': 'মোবাইল রিচার্জ',
+  'Hospital bill': 'হাসপাতাল বিল',
+  'Medicine bill': 'ওষুধের বিল',
+  'Doctor visit': 'ডাক্তার দেখানো',
+  'Zakat / Donation': 'যাকাত / দান',
+  Repairs: 'মেরামত',
+};
+
+// Goal names from templates / seeded defaults. Keyed by the English stored name;
+// custom user-typed names fall back to themselves.
+const GOAL_BN: Record<string, string> = {
+  'Hajj / Umrah': 'হজ্জ / ওমরাহ',
+  'Eid Shopping': 'ঈদের কেনাকাটা',
+  'Emergency Fund': 'জরুরি তহবিল',
+  'New Phone': 'নতুন ফোন',
+  'Flat Deposit': 'ফ্ল্যাট ডিপোজিট',
+  'Wedding (Biye)': 'বিয়ে',
+  'Send Home (village)': 'বাড়িতে পাঠানো (গ্রাম)',
+};
 
 function interpolate(str: string, vars?: Record<string, string | number>) {
   if (!vars) return str;
@@ -136,6 +254,10 @@ type LangState = {
   // Localize a category by its stable key; falls back to the stored label for
   // custom categories that have no translation.
   catLabel: (key: string, fallback: string) => string;
+  // Localize a known expense item; falls back to the value itself (custom/free text).
+  itemLabel: (item: string) => string;
+  // Localize a known goal name (templates/seeded); falls back to the name itself.
+  goalLabel: (name: string) => string;
   // Thousands-grouped number with digits localized to the current language
   // (Bangla numerals in bn). Use for all amounts, counts, and percentages.
   fmtN: (n: number) => string;
@@ -168,6 +290,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         const dict = dictionaries[language] as Record<string, string>;
         return dict[`cat.${key}`] ?? fallback;
       },
+      itemLabel: (item) => (language === 'bn' ? ITEM_BN[item] ?? item : item),
+      goalLabel: (name) => (language === 'bn' ? GOAL_BN[name] ?? name : name),
       fmtN: (n) => formatNumber(n, language),
     };
   }, [language]);

@@ -13,8 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Goal } from '../../src/api';
 import { GOAL_TEMPLATES } from '../../src/content';
 import { useData } from '../../src/data';
+import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Bar, Card, fmt, ScreenTitle } from '../../src/ui';
+import { Bar, Card, ScreenTitle } from '../../src/ui';
 
 const ICONS = ['🎯', '🛍️', '🛡️', '🏠', '📱', '🚗', '🎓', '💍', '🕋', '✈️', '🏢', '🏡'];
 
@@ -29,6 +30,7 @@ function GoalCard({
   onSave: (patch: { saved: number; target: number; perDay: number }) => Promise<void>;
   onDelete: () => void;
 }) {
+  const { t, goalLabel, fmtN } = useLang();
   const [amount, setAmount] = useState('500');
   const [busy, setBusy] = useState(false);
 
@@ -49,7 +51,7 @@ function GoalCard({
     try {
       await onDeposit(amt);
     } catch (e) {
-      Alert.alert('Could not deposit', e instanceof Error ? e.message : 'Try again.');
+      Alert.alert(t('goals.couldNotDeposit'), e instanceof Error ? e.message : t('common.tryAgain'));
     } finally {
       setBusy(false);
     }
@@ -65,18 +67,18 @@ function GoalCard({
 
   async function saveEdit() {
     const s = parseFloat(savedDraft);
-    const t = parseFloat(targetDraft);
+    const tg = parseFloat(targetDraft);
     const d = parseFloat(daysDraft);
-    if (isNaN(s) || s < 0) return Alert.alert('Check deposited', 'Enter a valid saved amount.');
-    if (!t || t <= 0) return Alert.alert('Check target', 'Enter a target greater than 0.');
-    if (!d || d <= 0) return Alert.alert('Check days', 'Enter target days greater than 0.');
-    const perDay = Math.max(1, Math.round(t / d));
+    if (isNaN(s) || s < 0) return Alert.alert(t('goals.checkDepositedTitle'), t('goals.checkDepositedMsg'));
+    if (!tg || tg <= 0) return Alert.alert(t('goals.checkTargetTitle'), t('goals.checkTargetMsg'));
+    if (!d || d <= 0) return Alert.alert(t('goals.checkDaysTitle'), t('goals.checkDaysMsg'));
+    const perDay = Math.max(1, Math.round(tg / d));
     setBusy(true);
     try {
-      await onSave({ saved: s, target: t, perDay });
+      await onSave({ saved: s, target: tg, perDay });
       setEditing(false);
     } catch (e) {
-      Alert.alert('Could not save', e instanceof Error ? e.message : 'Try again.');
+      Alert.alert(t('common.couldNotSave'), e instanceof Error ? e.message : t('common.tryAgain'));
     } finally {
       setBusy(false);
     }
@@ -90,32 +92,34 @@ function GoalCard({
 
       <View style={styles.row}>
         <Text style={styles.goalName}>
-          {goal.icon} {goal.name}
+          {goal.icon} {goalLabel(goal.name)}
         </Text>
         {!editing && (
           <Pressable onPress={startEdit} style={styles.editBtn} hitSlop={6}>
-            <Text style={styles.editText}>✎ Edit</Text>
+            <Text style={styles.editText}>{t('goals.edit')}</Text>
           </Pressable>
         )}
       </View>
       <Bar pct={pct} />
       <Text style={[styles.muted, { marginTop: 7 }]}>
-        ৳{fmt(goal.saved)} / {fmt(goal.target)} · {Math.round(pct * 100)}% ·{' '}
-        {days > 0 ? `~${days} days left` : '🎉 reached!'}
+        ৳{fmtN(goal.saved)} / {fmtN(goal.target)} · {fmtN(pct * 100)}% ·{' '}
+        {days > 0 ? t('goals.daysLeft', { n: fmtN(days) }) : t('goals.reached')}
       </Text>
 
       {editing ? (
         <View style={styles.editBox}>
-          <EditField label="Deposited (৳)" value={savedDraft} onChange={setSavedDraft} />
-          <EditField label="Target amount (৳)" value={targetDraft} onChange={setTargetDraft} />
-          <EditField label="Target days" value={daysDraft} onChange={setDaysDraft} />
-          <Text style={styles.hint}>Daily target updates to ৳{fmt(perDayPreview(targetDraft, daysDraft))}/day.</Text>
+          <EditField label={t('goals.deposited')} value={savedDraft} onChange={setSavedDraft} />
+          <EditField label={t('goals.targetAmountField')} value={targetDraft} onChange={setTargetDraft} />
+          <EditField label={t('goals.targetDays')} value={daysDraft} onChange={setDaysDraft} />
+          <Text style={styles.hint}>
+            {t('goals.dailyTargetUpdates', { n: fmtN(perDayPreview(targetDraft, daysDraft)) })}
+          </Text>
           <View style={styles.editActions}>
             <Pressable onPress={() => setEditing(false)} style={styles.cancelBtn}>
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelText}>{t('common.cancel')}</Text>
             </Pressable>
             <Pressable onPress={saveEdit} style={[styles.saveBtn, busy && { opacity: 0.6 }]} disabled={busy}>
-              <Text style={styles.saveText}>Save</Text>
+              <Text style={styles.saveText}>{t('common.save')}</Text>
             </Pressable>
           </View>
         </View>
@@ -127,11 +131,11 @@ function GoalCard({
             value={amount}
             onChangeText={setAmount}
             keyboardType="numeric"
-            placeholder="amount"
+            placeholder={t('goals.amountPlaceholder')}
             placeholderTextColor={colors.muted}
           />
           <Pressable style={[styles.depBtn, busy && { opacity: 0.6 }]} onPress={deposit} disabled={busy}>
-            <Text style={styles.depBtnText}>+ Deposit</Text>
+            <Text style={styles.depBtnText}>{t('goals.deposit')}</Text>
           </Pressable>
         </View>
       )}
@@ -162,6 +166,7 @@ function EditField({ label, value, onChange }: { label: string; value: string; o
 }
 
 export default function GoalsScreen() {
+  const { t, goalLabel, fmtN } = useLang();
   const { goals, deposit, addGoal, updateGoal, deleteGoal } = useData();
 
   // create-goal form (used by both custom entry and templates)
@@ -172,9 +177,9 @@ export default function GoalsScreen() {
   const [busy, setBusy] = useState(false);
 
   function confirmDelete(g: Goal) {
-    Alert.alert('Delete goal?', g.name, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteGoal(g.id) },
+    Alert.alert(t('goals.deleteTitle'), goalLabel(g.name), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: () => deleteGoal(g.id) },
     ]);
   }
 
@@ -189,19 +194,19 @@ export default function GoalsScreen() {
     const amt = parseFloat(target);
     const numDays = parseFloat(days);
     if (!goalName) {
-      Alert.alert('Name needed', 'Give your goal a name.');
+      Alert.alert(t('goals.nameNeededTitle'), t('goals.nameNeededMsg'));
       return;
     }
     if (!amt || amt <= 0) {
-      Alert.alert('Amount needed', 'Enter how much you need to save.');
+      Alert.alert(t('goals.amountNeededTitle'), t('goals.amountNeededMsg'));
       return;
     }
     if (!numDays || numDays <= 0) {
-      Alert.alert('Days needed', 'Enter how many days you want to reach it in.');
+      Alert.alert(t('goals.daysNeededTitle'), t('goals.daysNeededMsg'));
       return;
     }
     if (goals.find((g) => g.name.toLowerCase() === goalName.toLowerCase())) {
-      Alert.alert('Already exists', `You already have a goal called "${goalName}".`);
+      Alert.alert(t('goals.existsTitle'), t('goals.existsMsg', { name: goalName }));
       return;
     }
     const perDay = Math.max(1, Math.round(amt / numDays));
@@ -213,7 +218,7 @@ export default function GoalsScreen() {
       setDays('90');
       setIcon('🎯');
     } catch (e) {
-      Alert.alert('Could not add goal', e instanceof Error ? e.message : 'Try again.');
+      Alert.alert(t('goals.couldNotAdd'), e instanceof Error ? e.message : t('common.tryAgain'));
     } finally {
       setBusy(false);
     }
@@ -222,11 +227,11 @@ export default function GoalsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <ScreenTitle title="My Goals" subtitle="Save toward what matters" />
+        <ScreenTitle title={t('goals.title')} subtitle={t('goals.subtitle')} />
 
         {goals.length === 0 ? (
           <Card>
-            <Text style={styles.muted}>No goals yet — create one below.</Text>
+            <Text style={styles.muted}>{t('goals.noGoals')}</Text>
           </Card>
         ) : (
           goals.map((g) => (
@@ -242,19 +247,19 @@ export default function GoalsScreen() {
 
         {/* Create a goal */}
         <Card>
-          <Text style={styles.createHeading}>Create a goal</Text>
-          <Text style={styles.createSub}>Start from a template or create your own goal</Text>
+          <Text style={styles.createHeading}>{t('goals.createHeading')}</Text>
+          <Text style={styles.createSub}>{t('goals.createSub')}</Text>
           <View style={styles.tmpl}>
-            {GOAL_TEMPLATES.map((t) => (
-              <Pressable key={t.name} style={styles.tmplBtn} onPress={() => prefill(t)}>
-                <Text style={styles.tmplIcon}>{t.icon}</Text>
-                <Text style={styles.tmplName}>{t.name}</Text>
-                <Text style={styles.muted}>suggested ৳{fmt(t.target)}</Text>
+            {GOAL_TEMPLATES.map((tpl) => (
+              <Pressable key={tpl.name} style={styles.tmplBtn} onPress={() => prefill(tpl)}>
+                <Text style={styles.tmplIcon}>{tpl.icon}</Text>
+                <Text style={styles.tmplName}>{goalLabel(tpl.name)}</Text>
+                <Text style={styles.muted}>{t('goals.suggested', { n: fmtN(tpl.target) })}</Text>
               </Pressable>
             ))}
           </View>
 
-          <Text style={[styles.fieldLabel, { marginTop: 14 }]}>Icon</Text>
+          <Text style={[styles.fieldLabel, { marginTop: 14 }]}>{t('goals.iconLabel')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.iconRow}>
             {ICONS.map((em) => (
               <Pressable
@@ -266,18 +271,18 @@ export default function GoalsScreen() {
             ))}
           </ScrollView>
 
-          <Text style={styles.fieldLabel}>Goal name</Text>
+          <Text style={styles.fieldLabel}>{t('goals.nameLabel')}</Text>
           <TextInput
             style={styles.input}
             value={name}
             onChangeText={setName}
-            placeholder='e.g. "New laptop"'
+            placeholder={t('goals.namePlaceholder')}
             placeholderTextColor={colors.muted}
           />
 
           <View style={styles.twoCol}>
             <View style={styles.flex}>
-              <Text style={styles.fieldLabel}>Target amount</Text>
+              <Text style={styles.fieldLabel}>{t('goals.targetAmount')}</Text>
               <View style={styles.targetRow}>
                 <Text style={styles.taka}>৳</Text>
                 <TextInput
@@ -285,13 +290,13 @@ export default function GoalsScreen() {
                   value={target}
                   onChangeText={setTarget}
                   keyboardType="numeric"
-                  placeholder="amount"
+                  placeholder={t('goals.amountPlaceholder')}
                   placeholderTextColor={colors.muted}
                 />
               </View>
             </View>
             <View style={styles.daysCol}>
-              <Text style={styles.fieldLabel}>Target days</Text>
+              <Text style={styles.fieldLabel}>{t('goals.targetDays')}</Text>
               <TextInput
                 style={[styles.input, { marginTop: 0 }]}
                 value={days}
@@ -304,12 +309,12 @@ export default function GoalsScreen() {
           </View>
           {parseFloat(target) > 0 && parseFloat(days) > 0 && (
             <Text style={styles.perDayNote}>
-              That&apos;s ৳{fmt(Math.max(1, Math.round(parseFloat(target) / parseFloat(days))))}/day to reach it on time.
+              {t('goals.perDayNote', { n: fmtN(Math.max(1, Math.round(parseFloat(target) / parseFloat(days)))) })}
             </Text>
           )}
 
           <Pressable style={[styles.addBtn, busy && { opacity: 0.6 }]} onPress={create} disabled={busy}>
-            <Text style={styles.addBtnText}>+ Add goal</Text>
+            <Text style={styles.addBtnText}>{t('goals.addGoal')}</Text>
           </Pressable>
         </Card>
       </ScrollView>

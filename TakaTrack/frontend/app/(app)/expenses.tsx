@@ -21,7 +21,7 @@ import { Card, Divider, ScreenTitle, SectionTitle } from '../../src/ui';
 type Selected = { catKey: string; catLabel: string; note: string };
 
 export default function ExpensesScreen() {
-  const { t, catLabel, fmtN } = useLang();
+  const { t, catLabel, itemLabel, fmtN } = useLang();
   const { expenses, logExpense, deleteExpense } = useData();
   const [selected, setSelected] = useState<Selected | null>(null);
   const [amount, setAmount] = useState('');
@@ -106,7 +106,7 @@ export default function ExpensesScreen() {
                           key={item}
                           onPress={() => pick(g.key, g.label, item)}
                           style={[styles.chip, on && styles.chipOn]}>
-                          <Text style={[styles.chipText, on && styles.chipTextOn]}>{item}</Text>
+                          <Text style={[styles.chipText, on && styles.chipTextOn]}>{itemLabel(item)}</Text>
                         </Pressable>
                       );
                     })}
@@ -146,7 +146,7 @@ export default function ExpensesScreen() {
                   <Text style={{ fontWeight: '700', color: colors.ink }}>
                     {catLabel(selected.catKey, selected.catLabel)}
                   </Text>{' '}
-                  — {selected.note}
+                  — {itemLabel(selected.note)}
                 </>
               ) : (
                 t('expenses.noCategory')
@@ -183,11 +183,16 @@ export default function ExpensesScreen() {
               expenses.map((x) => (
                 <Pressable
                   key={x.id}
-                  onLongPress={() => confirmDelete(x.id, `${x.note || x.catLabel} · ৳${fmtN(x.amt)}`)}
+                  onLongPress={() =>
+                    confirmDelete(
+                      x.id,
+                      `${itemLabel(x.note) || catLabel(x.catKey, x.catLabel)} · ৳${fmtN(x.amt)}`,
+                    )
+                  }
                   style={styles.entry}>
                   <View>
-                    <Text style={styles.entryNote}>{x.note || x.catLabel}</Text>
-                    <Text style={styles.entryCat}>{x.catLabel}</Text>
+                    <Text style={styles.entryNote}>{itemLabel(x.note) || catLabel(x.catKey, x.catLabel)}</Text>
+                    <Text style={styles.entryCat}>{catLabel(x.catKey, x.catLabel)}</Text>
                   </View>
                   <Text style={styles.entryAmt}>৳{fmtN(x.amt)}</Text>
                 </Pressable>
