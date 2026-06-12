@@ -21,7 +21,7 @@ import { Bar, Card, Ring, ringColor, SectionTitle } from '../../src/ui';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { language, toggle, t, catLabel, fmtN } = useLang();
+  const { language, toggle, t, catLabel, goalLabel, fmtN } = useLang();
   const { user, logout } = useAuth();
   const { loading, income, categories, expenses, goals, arcade, spentForCategory, totalSpent, refresh } =
     useData();
@@ -203,7 +203,7 @@ export default function HomeScreen() {
                 <View key={g.id} style={{ marginBottom: 9 }}>
                   <View style={styles.lineRow}>
                     <Text style={styles.lineLabel}>
-                      {g.icon} {g.name}
+                      {g.icon} {goalLabel(g.name)}
                     </Text>
                     <Text style={styles.lineMuted}>
                       ৳{fmtN(g.saved)} / {fmtN(g.target)}
