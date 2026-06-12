@@ -201,13 +201,13 @@ const styles = StyleSheet.create({
   legendText: { fontSize: 10, color: colors.muted },
 
   warnCard: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
-  summaryLabel: { fontSize: 13, fontWeight: '700', color: '#334155' },
+  summaryLabel: { fontSize: 14, fontWeight: '800', color: colors.ink },
   summaryVal: { fontSize: 14, fontWeight: '800', color: colors.ink },
   warnText: { fontSize: 12, color: '#b91c1c', marginTop: 8, lineHeight: 18, fontWeight: '600' },
   okText: { fontSize: 12, color: colors.green, marginTop: 8 },
 
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardTitle: { fontSize: 13, fontWeight: '700', color: '#334155' },
+  cardTitle: { fontSize: 14, fontWeight: '800', color: colors.ink },
   editBtn: { backgroundColor: '#eef2f7', borderRadius: 9, paddingHorizontal: 12, paddingVertical: 6 },
   editText: { fontSize: 12, fontWeight: '700', color: colors.teal },
   editActions: { flexDirection: 'row', gap: 7 },
