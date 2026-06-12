@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { askGemini, buildSnapshot, ChatTurn } from '../../src/ai';
+import { askAI, buildSnapshot, ChatTurn } from '../../src/ai';
 import { useAuth } from '../../src/auth';
 import { useData } from '../../src/data';
 import { colors } from '../../src/theme';
@@ -61,7 +61,7 @@ export default function AssistantScreen() {
     requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
 
     try {
-      const reply = await askGemini(next, buildContext());
+      const reply = await askAI(next, buildContext());
       setTurns((prev) => [...prev, { role: 'model', text: reply }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong.');

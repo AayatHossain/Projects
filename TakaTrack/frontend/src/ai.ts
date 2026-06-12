@@ -1,45 +1,44 @@
 import { Arcade, Category, Expense, Goal } from './api';
 
-// Gemini client. The key is read from .env (EXPO_PUBLIC_GEMINI_API_KEY), which is
+// OpenAI client. The key is read from .env (EXPO_PUBLIC_OPENAI_API_KEY), which is
 // gitignored so it never lands in git/GitHub. ⚠️ EXPO_PUBLIC_ vars are still baked
 // into the client bundle — fine for testing, but before real users move this call
 // to the backend and keep the key server-side (it sees financial data).
-const GEMINI_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY ?? '';
-const MODEL = 'gemini-2.5-flash';
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+const OPENAI_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY ?? '';
+const MODEL = 'gpt-4o-mini';
+const ENDPOINT = 'https://api.openai.com/v1/chat/completions';
 
 export type ChatTurn = { role: 'user' | 'model'; text: string };
 
 type GenOpts = { temperature?: number; maxOutputTokens?: number };
 
 /**
- * Send a conversation to Gemini with a system instruction. Returns the reply text,
- * or throws on error.
+ * Send a conversation to the model with a system instruction. Returns the reply
+ * text, or throws on error.
  */
-export async function askGemini(
+export async function askAI(
   history: ChatTurn[],
   systemText: string,
   opts: GenOpts = {},
 ): Promise<string> {
-  if (!GEMINI_KEY) {
-    throw new Error('Missing API key. Add EXPO_PUBLIC_GEMINI_API_KEY to .env and restart the dev server.');
+  if (!OPENAI_KEY) {
+    throw new Error('Missing API key. Add EXPO_PUBLIC_OPENAI_API_KEY to .env and restart the dev server.');
   }
   const res = await fetch(ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-goog-api-key': GEMINI_KEY,
+      Authorization: `Bearer ${OPENAI_KEY}`,
     },
     body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemText }] },
-      contents: history.map((t) => ({ role: t.role, parts: [{ text: t.text }] })),
-      generationConfig: {
-        temperature: opts.temperature ?? 0.7,
-        maxOutputTokens: opts.maxOutputTokens ?? 400,
-        // gemini-2.5-flash is a "thinking" model — reasoning tokens otherwise eat the
-        // maxOutputTokens budget and truncate short answers. We don't need it here.
-        thinkingConfig: { thinkingBudget: 0 },
-      },
+      model: MODEL,
+      messages: [
+        { role: 'system', content: systemText },
+        // OpenAI uses 'assistant' where our ChatTurn uses 'model'.
+        ...history.map((t) => ({ role: t.role === 'model' ? 'assistant' : 'user', content: t.text })),
+      ],
+      temperature: opts.temperature ?? 0.7,
+      max_tokens: opts.maxOutputTokens ?? 400,
     }),
   });
 
@@ -47,10 +46,9 @@ export async function askGemini(
   if (!res.ok) {
     throw new Error(json?.error?.message || `HTTP ${res.status}`);
   }
-  const text = json?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text).join('') ?? '';
+  const text = json?.choices?.[0]?.message?.content ?? '';
   if (!text.trim()) {
-    const reason = json?.candidates?.[0]?.finishReason;
-    throw new Error(reason ? `No answer (finishReason: ${reason}).` : 'Empty response from the model.');
+    throw new Error('Empty response from the model.');
   }
   return text.trim();
 }
@@ -115,11 +113,17 @@ export function buildSnapshot(d: FinanceData): string {
  * Generate a single short insight for the home card. Pass previously shown
  * insights in `avoid` so a reload produces a fresh angle.
  */
-export async function generateInsight(d: FinanceData, avoid: string[] = []): Promise<string> {
+export async function generateInsight(
+  d: FinanceData,
+  avoid: string[] = [],
+  lang: 'en' | 'bn' = 'en',
+): Promise<string> {
+  const language = lang === 'bn' ? 'Bangla (বাংলা)' : 'English';
   const system = [
     `You are the financial assistant for TakaTrack, a budgeting app used in Bangladesh (currency Bangladeshi Taka, ৳).`,
     `Write ONE proactive insight for the home screen: a single tip, observation, or encouragement based on the snapshot below.`,
     `Rules: 1-2 sentences, max ~35 words. Be specific and use the user's real numbers. Friendly and practical. No greeting, no preamble, no markdown — just the insight sentence. If data is thin, give a useful general budgeting nudge.`,
+    `Write the insight in ${language}.`,
     ``,
     buildSnapshot(d),
   ].join('\n');
@@ -129,7 +133,7 @@ export async function generateInsight(d: FinanceData, avoid: string[] = []): Pro
       ? `Give me a different insight from a fresh angle. Do NOT repeat the meaning of these:\n${avoid.map((a) => `- ${a}`).join('\n')}`
       : `Give me an insight.`;
 
-  return askGemini([{ role: 'user', text: ask }], system, {
+  return askAI([{ role: 'user', text: ask }], system, {
     temperature: 1.0, // higher = more variety across reloads
     maxOutputTokens: 200,
   });

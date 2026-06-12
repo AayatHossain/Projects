@@ -14,12 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CATEGORY_GROUPS } from '../../src/content';
 import { useData } from '../../src/data';
+import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Card, Divider, fmt, ScreenTitle, SectionTitle } from '../../src/ui';
+import { Card, Divider, ScreenTitle, SectionTitle } from '../../src/ui';
 
 type Selected = { catKey: string; catLabel: string; note: string };
 
 export default function ExpensesScreen() {
+  const { t, catLabel, fmtN } = useLang();
   const { expenses, logExpense, deleteExpense } = useData();
   const [selected, setSelected] = useState<Selected | null>(null);
   const [amount, setAmount] = useState('');
@@ -46,12 +48,12 @@ export default function ExpensesScreen() {
   async function onAdd() {
     if (busy) return;
     if (!selected) {
-      Alert.alert('Pick a category', 'Tap a category above first.');
+      Alert.alert(t('expenses.pickCategoryTitle'), t('expenses.pickCategoryMsg'));
       return;
     }
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) {
-      Alert.alert('Enter an amount', 'Type how much you spent.');
+      Alert.alert(t('expenses.enterAmountTitle'), t('expenses.enterAmountMsg'));
       return;
     }
     setBusy(true);
@@ -65,16 +67,16 @@ export default function ExpensesScreen() {
       setAmount('');
       setNote('');
     } catch (e) {
-      Alert.alert('Could not save', e instanceof Error ? e.message : 'Try again.');
+      Alert.alert(t('common.couldNotSave'), e instanceof Error ? e.message : t('common.tryAgain'));
     } finally {
       setBusy(false);
     }
   }
 
   function confirmDelete(id: string, label: string) {
-    Alert.alert('Delete entry?', label, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteExpense(id) },
+    Alert.alert(t('expenses.deleteTitle'), label, [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: () => deleteExpense(id) },
     ]);
   }
 
@@ -84,17 +86,17 @@ export default function ExpensesScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <ScreenTitle title="Expenses" subtitle="Log spending in a tap" />
+          <ScreenTitle title={t('expenses.title')} subtitle={t('expenses.subtitle')} />
 
           <Card>
-            <Text style={styles.enterHeading}>Enter expense details</Text>
+            <Text style={styles.enterHeading}>{t('expenses.enterDetails')}</Text>
             <Divider style={styles.headingDivider} />
             {CATEGORY_GROUPS.map((g) => {
               const items = [...g.items, ...(customItems[g.key] ?? [])];
               return (
                 <View key={g.key} style={styles.group}>
                   <Text style={styles.groupHead}>
-                    {g.icon} {g.label}
+                    {g.icon} {catLabel(g.key, g.label)}
                   </Text>
                   <View style={styles.chips}>
                     {items.map((item) => {
@@ -114,7 +116,7 @@ export default function ExpensesScreen() {
                         setCustomForKey((k) => (k === g.key ? null : g.key));
                       }}
                       style={[styles.chip, styles.chipAdd]}>
-                      <Text style={[styles.chipText, { color: colors.teal }]}>+ Custom</Text>
+                      <Text style={[styles.chipText, { color: colors.teal }]}>{t('expenses.custom')}</Text>
                     </Pressable>
                   </View>
                   {customForKey === g.key && (
@@ -123,13 +125,13 @@ export default function ExpensesScreen() {
                         style={styles.customInput}
                         value={customInput}
                         onChangeText={setCustomInput}
-                        placeholder={`Custom ${g.label} item`}
+                        placeholder={t('expenses.customPlaceholder', { label: catLabel(g.key, g.label) })}
                         placeholderTextColor={colors.muted}
                         autoFocus
                         onSubmitEditing={() => addCustom(g.key, g.label)}
                       />
                       <Pressable style={styles.smallBtn} onPress={() => addCustom(g.key, g.label)}>
-                        <Text style={styles.smallBtnText}>Add</Text>
+                        <Text style={styles.smallBtnText}>{t('common.add')}</Text>
                       </Pressable>
                     </View>
                   )}
@@ -140,10 +142,14 @@ export default function ExpensesScreen() {
             <Text style={styles.selNote}>
               {selected ? (
                 <>
-                  Selected: <Text style={{ fontWeight: '700', color: colors.ink }}>{selected.catLabel}</Text> — {selected.note}
+                  {t('expenses.selectedPrefix')}{' '}
+                  <Text style={{ fontWeight: '700', color: colors.ink }}>
+                    {catLabel(selected.catKey, selected.catLabel)}
+                  </Text>{' '}
+                  — {selected.note}
                 </>
               ) : (
-                'No category selected — tap one above.'
+                t('expenses.noCategory')
               )}
             </Text>
 
@@ -152,7 +158,7 @@ export default function ExpensesScreen() {
                 style={[styles.input, styles.amtInput]}
                 value={amount}
                 onChangeText={setAmount}
-                placeholder="৳ amount"
+                placeholder={t('expenses.amountPlaceholder')}
                 placeholderTextColor={colors.muted}
                 keyboardType="numeric"
               />
@@ -160,34 +166,34 @@ export default function ExpensesScreen() {
                 style={[styles.input, styles.flex]}
                 value={note}
                 onChangeText={setNote}
-                placeholder="note (optional)"
+                placeholder={t('expenses.notePlaceholder')}
                 placeholderTextColor={colors.muted}
               />
               <Pressable style={[styles.addBtn, busy && { opacity: 0.6 }]} onPress={onAdd} disabled={busy}>
-                <Text style={styles.addBtnText}>Add</Text>
+                <Text style={styles.addBtnText}>{t('common.add')}</Text>
               </Pressable>
             </View>
           </Card>
 
           <Card>
-            <SectionTitle>Recent transactions</SectionTitle>
+            <SectionTitle>{t('expenses.recent')}</SectionTitle>
             {expenses.length === 0 ? (
-              <Text style={styles.muted}>No transactions yet.</Text>
+              <Text style={styles.muted}>{t('expenses.noTransactions')}</Text>
             ) : (
               expenses.map((x) => (
                 <Pressable
                   key={x.id}
-                  onLongPress={() => confirmDelete(x.id, `${x.note || x.catLabel} · ৳${fmt(x.amt)}`)}
+                  onLongPress={() => confirmDelete(x.id, `${x.note || x.catLabel} · ৳${fmtN(x.amt)}`)}
                   style={styles.entry}>
                   <View>
                     <Text style={styles.entryNote}>{x.note || x.catLabel}</Text>
                     <Text style={styles.entryCat}>{x.catLabel}</Text>
                   </View>
-                  <Text style={styles.entryAmt}>৳{fmt(x.amt)}</Text>
+                  <Text style={styles.entryAmt}>৳{fmtN(x.amt)}</Text>
                 </Pressable>
               ))
             )}
-            {expenses.length > 0 && <Text style={styles.hint}>Long-press an entry to delete.</Text>}
+            {expenses.length > 0 && <Text style={styles.hint}>{t('expenses.longPressHint')}</Text>}
           </Card>
         </ScrollView>
       </KeyboardAvoidingView>

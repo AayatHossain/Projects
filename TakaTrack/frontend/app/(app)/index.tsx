@@ -15,11 +15,13 @@ import { useRouter } from 'expo-router';
 import { generateInsight } from '../../src/ai';
 import { useAuth } from '../../src/auth';
 import { useData } from '../../src/data';
+import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Bar, Card, fmt, Ring, ringColor, SectionTitle } from '../../src/ui';
+import { Bar, Card, Ring, ringColor, SectionTitle } from '../../src/ui';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { language, toggle, t, catLabel, fmtN } = useLang();
   const { user, logout } = useAuth();
   const { loading, income, categories, expenses, goals, arcade, spentForCategory, totalSpent, refresh } =
     useData();
@@ -41,21 +43,28 @@ export default function HomeScreen() {
       const text = await generateInsight(
         { name: user?.name ?? 'User', income, categories, expenses, goals, arcade, spentForCategory, totalSpent },
         insight ? [insight] : [],
+        language,
       );
       setInsight(text);
     } catch (e) {
-      setInsightError(e instanceof Error ? e.message : 'Could not load insight.');
+      setInsightError(e instanceof Error ? e.message : t('home.insightError'));
     } finally {
       setInsightLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, income, categories, expenses, goals, arcade, insight]);
+  }, [user, income, categories, expenses, goals, arcade, insight, language]);
 
   // Generate one automatically once the financial data has loaded.
   useEffect(() => {
     if (!loading && !insight && !insightLoading) newInsight();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
+
+  // Re-generate the insight in the new language when the user switches.
+  useEffect(() => {
+    if (!loading && insight) newInsight();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]);
 
   async function onRefresh() {
     setRefreshing(true);
@@ -79,13 +88,27 @@ export default function HomeScreen() {
             <Text style={styles.avatarText}>{(user?.name?.[0] ?? 'U').toUpperCase()}</Text>
           </View>
           <View>
-            <Text style={styles.hello}>Welcome back</Text>
-            <Text style={styles.name}>{user?.name ?? 'there'}</Text>
+            <Text style={styles.hello}>{t('home.welcomeBack')}</Text>
+            <Text style={styles.name}>{user?.name ?? t('home.greeting')}</Text>
           </View>
         </Pressable>
-        <Pressable style={styles.logout} onPress={logout}>
-          <Text style={styles.logoutText}>Log out</Text>
-        </Pressable>
+        <View style={styles.topbarRight}>
+          <View style={styles.langToggle}>
+            <Pressable
+              onPress={() => language !== 'en' && toggle()}
+              style={[styles.langBtn, language === 'en' && styles.langBtnOn]}>
+              <Text style={[styles.langText, language === 'en' && styles.langTextOn]}>{t('lang.english')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => language !== 'bn' && toggle()}
+              style={[styles.langBtn, language === 'bn' && styles.langBtnOn]}>
+              <Text style={[styles.langText, language === 'bn' && styles.langTextOn]}>{t('lang.bangla')}</Text>
+            </Pressable>
+          </View>
+          <Pressable style={styles.logout} onPress={logout}>
+            <Text style={styles.logoutText}>{t('common.logout')}</Text>
+          </Pressable>
+        </View>
       </View>
       <ScrollView
         style={styles.bgWrap}
@@ -95,9 +118,9 @@ export default function HomeScreen() {
         <Card style={styles.hero}>
           <View style={styles.row}>
             <View>
-              <Text style={styles.heroLabel}>Spent this month</Text>
+              <Text style={styles.heroLabel}>{t('home.spentThisMonth')}</Text>
               <Text style={styles.heroBig}>
-                ৳{fmt(spent)} <Text style={styles.heroSub}>/ {fmt(income)}</Text>
+                ৳{fmtN(spent)} <Text style={styles.heroSub}>/ {fmtN(income)}</Text>
               </Text>
             </View>
             <Ring
@@ -107,22 +130,22 @@ export default function HomeScreen() {
               color="#fff"
               trackColor="rgba(255,255,255,0.3)"
               labelColor="#fff"
-              label={`${Math.round(pct * 100)}%`}
+              label={`${fmtN(pct * 100)}%`}
             />
           </View>
           <View style={styles.heroBar}>
             <View style={{ width: `${Math.min(pct, 1) * 100}%`, height: '100%', backgroundColor: '#fff', borderRadius: 999 }} />
           </View>
           <View style={[styles.row, { marginTop: 10 }]}>
-            <Text style={styles.pill}>⭐ {arcade.points} TakaPoints</Text>
-            <Text style={styles.pill}>📂 {categories.length} categories</Text>
+            <Text style={styles.pill}>⭐ {t('home.takaPoints', { n: fmtN(arcade.points) })}</Text>
+            <Text style={styles.pill}>📂 {t('home.categories', { n: fmtN(categories.length) })}</Text>
           </View>
         </Card>
 
         {/* AI insight (Gemini) */}
         <Card style={styles.ai}>
           <View style={styles.aiHeader}>
-            <Text style={styles.aiTag}>AI INSIGHT</Text>
+            <Text style={styles.aiTag}>{t('home.aiInsight')}</Text>
             <Pressable
               onPress={newInsight}
               disabled={insightLoading}
@@ -141,14 +164,14 @@ export default function HomeScreen() {
             <Text style={styles.aiText}>{insight}</Text>
           ) : (
             <Text style={[styles.aiText, { fontStyle: 'italic', opacity: 0.7 }]}>
-              Reading your finances…
+              {t('home.readingFinances')}
             </Text>
           )}
         </Card>
 
         {/* Expense progress by category */}
         <Card>
-          <SectionTitle>Expense progress (by category)</SectionTitle>
+          <SectionTitle>{t('home.expenseProgress')}</SectionTitle>
           {categories.map((c) => {
             const s = spentForCategory(c.key);
             const p = c.alloc > 0 ? s / c.alloc : 0;
@@ -156,10 +179,10 @@ export default function HomeScreen() {
               <View key={c.key} style={{ marginBottom: 9 }}>
                 <View style={styles.lineRow}>
                   <Text style={styles.lineLabel}>
-                    {c.icon} {c.label}
+                    {c.icon} {catLabel(c.key, c.label)}
                   </Text>
                   <Text style={styles.lineMuted}>
-                    ৳{fmt(s)} / {fmt(c.alloc)}
+                    ৳{fmtN(s)} / {fmtN(c.alloc)}
                   </Text>
                 </View>
                 <Bar pct={p} color={ringColor(p)} />
@@ -170,9 +193,9 @@ export default function HomeScreen() {
 
         {/* Savings progress */}
         <Card>
-          <SectionTitle>Savings progress (goals)</SectionTitle>
+          <SectionTitle>{t('home.savingsProgress')}</SectionTitle>
           {goals.length === 0 ? (
-            <Text style={styles.lineMuted}>No goals yet — add one in the Goals tab.</Text>
+            <Text style={styles.lineMuted}>{t('home.noGoals')}</Text>
           ) : (
             goals.map((g) => {
               const p = g.target > 0 ? g.saved / g.target : 0;
@@ -183,7 +206,7 @@ export default function HomeScreen() {
                       {g.icon} {g.name}
                     </Text>
                     <Text style={styles.lineMuted}>
-                      ৳{fmt(g.saved)} / {fmt(g.target)}
+                      ৳{fmtN(g.saved)} / {fmtN(g.target)}
                     </Text>
                   </View>
                   <Bar pct={p} />
@@ -218,6 +241,12 @@ const styles = StyleSheet.create({
   avatarText: { color: colors.tealDeep, fontWeight: '800', fontSize: 19 },
   hello: { fontSize: 13, color: colors.muted },
   name: { fontSize: 22, fontWeight: '800', color: colors.ink, letterSpacing: -0.3 },
+  topbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  langToggle: { flexDirection: 'row', backgroundColor: '#eef2f7', borderRadius: 9, padding: 2 },
+  langBtn: { paddingHorizontal: 9, paddingVertical: 5, borderRadius: 7 },
+  langBtnOn: { backgroundColor: colors.teal },
+  langText: { fontSize: 11.5, fontWeight: '800', color: colors.muted },
+  langTextOn: { color: '#fff' },
   logout: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#000', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 8 },
   logoutText: { color: colors.red, fontWeight: '700', fontSize: 12 },
   hero: { backgroundColor: colors.teal, borderWidth: 0 },
