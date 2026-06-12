@@ -43,8 +43,8 @@ export default function AppLayout() {
           options={{ title: 'Goals', tabBarIcon: tabIcon('flag', 'flag-outline') }}
         />
         <Tabs.Screen
-          name="arcade"
-          options={{ title: 'Arcade', tabBarIcon: tabIcon('game-controller', 'game-controller-outline') }}
+          name="learning"
+          options={{ title: 'Learning', tabBarIcon: tabIcon('school', 'school-outline') }}
         />
         <Tabs.Screen
           name="budget"
@@ -58,6 +58,8 @@ export default function AppLayout() {
         <Tabs.Screen name="account" options={{ href: null }} />
         {/* Routable from the Home insight card, hidden from the tab bar. */}
         <Tabs.Screen name="insights" options={{ href: null }} />
+        {/* Quiz runner, opened from a lecture in Learning. */}
+        <Tabs.Screen name="quiz" options={{ href: null }} />
       </Tabs>
     </DataProvider>
   );
