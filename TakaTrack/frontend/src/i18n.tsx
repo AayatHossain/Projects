@@ -29,6 +29,13 @@ const en = {
   'home.savingsProgress': 'Savings progress (goals)',
   'home.noGoals': 'No goals yet — add one in the Goals tab.',
   'home.insightError': 'Could not load insight.',
+  'home.seeMore': 'See More Suggestions',
+
+  'insights.title': 'AI Suggestions',
+  'insights.subtitle': 'Personalized tips from your finances',
+  'insights.generate': 'Generate 5 new',
+  'insights.loading': 'Generating suggestions…',
+  'insights.error': 'Could not load suggestions.',
 
   'expenses.title': 'Expenses',
   'expenses.subtitle': 'Log spending in a tap',
@@ -153,6 +160,13 @@ const bn: Record<TKey, string> = {
   'home.savingsProgress': 'সঞ্চয়ের অগ্রগতি (লক্ষ্য)',
   'home.noGoals': 'এখনো কোনো লক্ষ্য নেই — Goals ট্যাবে একটি যোগ করুন।',
   'home.insightError': 'পরামর্শ লোড করা যায়নি।',
+  'home.seeMore': 'আরও পরামর্শ দেখুন',
+
+  'insights.title': 'এআই পরামর্শ',
+  'insights.subtitle': 'আপনার হিসাব থেকে ব্যক্তিগত পরামর্শ',
+  'insights.generate': '৫টি নতুন তৈরি করুন',
+  'insights.loading': 'পরামর্শ তৈরি হচ্ছে…',
+  'insights.error': 'পরামর্শ লোড করা যায়নি।',
 
   'expenses.title': 'খরচ',
   'expenses.subtitle': 'এক ট্যাপে খরচ লিখুন',

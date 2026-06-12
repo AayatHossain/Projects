@@ -138,3 +138,36 @@ export async function generateInsight(
     maxOutputTokens: 200,
   });
 }
+
+/**
+ * Generate several distinct insights in a single API call (cheaper than N calls).
+ * Returns an array of insight strings.
+ */
+export async function generateInsights(
+  d: FinanceData,
+  count = 5,
+  lang: 'en' | 'bn' = 'en',
+): Promise<string[]> {
+  const language = lang === 'bn' ? 'Bangla (বাংলা)' : 'English';
+  const system = [
+    `You are the financial assistant for TakaTrack, a budgeting app used in Bangladesh (currency Bangladeshi Taka, ৳).`,
+    `Write ${count} DIFFERENT proactive insights based on the snapshot below — each a tip, observation, or encouragement covering a different angle (spending, a specific category, a savings goal, budget balance, a habit).`,
+    `Rules per insight: 1-2 sentences, max ~35 words, specific and using the user's real numbers, friendly and practical. No markdown.`,
+    `Output format: exactly ${count} insights, ONE per line, with NO numbering, bullets, or blank lines between them.`,
+    `Write everything in ${language}.`,
+    ``,
+    buildSnapshot(d),
+  ].join('\n');
+
+  const text = await askAI([{ role: 'user', text: `Give me ${count} insights.` }], system, {
+    temperature: 1.0,
+    maxOutputTokens: 500,
+  });
+
+  // Split into lines, strip any stray numbering/bullets the model may add.
+  return text
+    .split('\n')
+    .map((l) => l.replace(/^\s*(\d+[.)]|[-•*])\s*/, '').trim())
+    .filter(Boolean)
+    .slice(0, count);
+}

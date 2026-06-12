@@ -56,6 +56,8 @@ export default function AppLayout() {
         />
         {/* Routable via the avatar on Home, but hidden from the tab bar. */}
         <Tabs.Screen name="account" options={{ href: null }} />
+        {/* Routable from the Home insight card, hidden from the tab bar. */}
+        <Tabs.Screen name="insights" options={{ href: null }} />
       </Tabs>
     </DataProvider>
   );

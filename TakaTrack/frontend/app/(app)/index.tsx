@@ -167,6 +167,10 @@ export default function HomeScreen() {
               {t('home.readingFinances')}
             </Text>
           )}
+          <Pressable style={styles.seeMoreBtn} onPress={() => router.push('/insights')}>
+            <Text style={styles.seeMoreText}>{t('home.seeMore')}</Text>
+            <Text style={styles.seeMoreArrow}>›</Text>
+          </Pressable>
         </Card>
 
         {/* Expense progress by category */}
@@ -261,6 +265,9 @@ const styles = StyleSheet.create({
   reloadBtn: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#e4d9fb' },
   reloadIcon: { fontSize: 16, fontWeight: '900', color: colors.violet, lineHeight: 18 },
   aiTag: { fontSize: 10, fontWeight: '800', color: colors.violet, letterSpacing: 0.5 },
+  seeMoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 12, paddingVertical: 9, borderRadius: 10, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e4d9fb' },
+  seeMoreText: { fontSize: 12.5, fontWeight: '800', color: colors.violet },
+  seeMoreArrow: { fontSize: 16, fontWeight: '800', color: colors.violet, lineHeight: 16 },
   aiText: { fontSize: 13, color: '#3b0764', lineHeight: 20 },
   lineRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   lineLabel: { fontSize: 13, color: colors.ink2, fontWeight: '600' },
