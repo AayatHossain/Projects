@@ -40,24 +40,24 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      <View style={styles.topbar}>
+        <View style={styles.headerLeft}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{(user?.name?.[0] ?? 'U').toUpperCase()}</Text>
+          </View>
+          <View>
+            <Text style={styles.hello}>Welcome back</Text>
+            <Text style={styles.name}>{user?.name ?? 'there'}</Text>
+          </View>
+        </View>
+        <Pressable style={styles.logout} onPress={logout}>
+          <Text style={styles.logoutText}>Log out</Text>
+        </Pressable>
+      </View>
       <ScrollView
+        style={styles.bgWrap}
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{(user?.name?.[0] ?? 'U').toUpperCase()}</Text>
-            </View>
-            <View>
-              <Text style={styles.hello}>Welcome back</Text>
-              <Text style={styles.name}>{user?.name ?? 'there'}</Text>
-            </View>
-          </View>
-          <Pressable style={styles.logout} onPress={logout}>
-            <Text style={styles.logoutText}>Log out</Text>
-          </Pressable>
-        </View>
-
         {/* Hero */}
         <Card style={styles.hero}>
           <View style={styles.row}>
@@ -148,10 +148,21 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  safe: { flex: 1, backgroundColor: '#fff' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
+  bgWrap: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 14, paddingBottom: 24 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, marginTop: 6 },
+  topbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingTop: 6,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.lineStrong,
+  },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.tealTint, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#000' },
   avatarText: { color: colors.tealDeep, fontWeight: '800', fontSize: 19 },
