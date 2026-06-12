@@ -19,7 +19,11 @@ type DataState = {
   deleteExpense: (id: string) => Promise<void>;
   setIncome: (income: number) => Promise<void>;
   saveBudget: (income: number, categories: Category[]) => Promise<void>;
-  addGoal: (g: { name: string; icon: string; target: number }) => Promise<void>;
+  addGoal: (g: { name: string; icon: string; target: number; perDay?: number }) => Promise<void>;
+  updateGoal: (
+    id: string,
+    patch: { name?: string; icon?: string; target?: number; saved?: number; perDay?: number },
+  ) => Promise<void>;
   deposit: (id: string, amount: number) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
   completeActivity: (id: string, points: number) => Promise<void>;
@@ -104,6 +108,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     addGoal: async (g) => {
       const created = await api.data.addGoal(token!, g);
       setGoals((prev) => [...prev, created]);
+    },
+    updateGoal: async (id, patch) => {
+      const updated = await api.data.updateGoal(token!, id, patch);
+      setGoals((prev) => prev.map((g) => (g.id === id ? updated : g)));
     },
     deposit: async (id, amount) => {
       const updated = await api.data.deposit(token!, id, amount);

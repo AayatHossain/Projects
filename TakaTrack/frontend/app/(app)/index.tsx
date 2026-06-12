@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useRouter } from 'expo-router';
+
 import { generateInsight } from '../../src/ai';
 import { useAuth } from '../../src/auth';
 import { useData } from '../../src/data';
@@ -17,6 +19,7 @@ import { colors } from '../../src/theme';
 import { Bar, Card, fmt, Ring, ringColor, SectionTitle } from '../../src/ui';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const { loading, income, categories, expenses, goals, arcade, spentForCategory, totalSpent, refresh } =
     useData();
@@ -71,7 +74,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topbar}>
-        <View style={styles.headerLeft}>
+        <Pressable style={styles.headerLeft} onPress={() => router.push('/account')}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{(user?.name?.[0] ?? 'U').toUpperCase()}</Text>
           </View>
@@ -79,7 +82,7 @@ export default function HomeScreen() {
             <Text style={styles.hello}>Welcome back</Text>
             <Text style={styles.name}>{user?.name ?? 'there'}</Text>
           </View>
-        </View>
+        </Pressable>
         <Pressable style={styles.logout} onPress={logout}>
           <Text style={styles.logoutText}>Log out</Text>
         </Pressable>

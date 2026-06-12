@@ -102,6 +102,14 @@ class GoalIn(BaseModel):
     perDay: float = Field(default=300, gt=0)
 
 
+class GoalUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=60)
+    icon: str | None = None
+    target: float | None = Field(default=None, gt=0)
+    saved: float | None = Field(default=None, ge=0)
+    perDay: float | None = Field(default=None, gt=0)
+
+
 class DepositIn(BaseModel):
     amount: float = Field(gt=0)
 
@@ -172,6 +180,24 @@ def add_goal(body: GoalIn, user: UserOut = Depends(current_user)):
     }
     ref(f"{_root(user.uid)}/goals/{gid}").set(goal)
     return {"id": gid, **goal}
+
+
+@router.put("/goals/{gid}")
+def update_goal(gid: str, body: GoalUpdate, user: UserOut = Depends(current_user)):
+    """Edit a goal's deposited amount, target, perDay, name, or icon."""
+    path = f"{_root(user.uid)}/goals/{gid}"
+    node = ref(path).get()
+    if not node:
+        raise HTTPException(status_code=404, detail="Goal not found.")
+
+    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    # Keep saved within [0, target] after any change to either field.
+    new_target = updates.get("target", node["target"])
+    new_saved = updates.get("saved", node.get("saved", 0))
+    updates["saved"] = max(0, min(new_saved, new_target))
+
+    ref(path).update(updates)
+    return {"id": gid, **node, **updates}
 
 
 @router.post("/goals/{gid}/deposit")

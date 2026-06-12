@@ -92,6 +92,12 @@ export const api = {
       g: { name: string; icon: string; target: number; perDay?: number },
     ) => request<Goal>('/data/goals', { method: 'POST', token, body: g }),
 
+    updateGoal: (
+      token: string,
+      id: string,
+      patch: { name?: string; icon?: string; target?: number; saved?: number; perDay?: number },
+    ) => request<Goal>(`/data/goals/${id}`, { method: 'PUT', token, body: patch }),
+
     deposit: (token: string, id: string, amount: number) =>
       request<Goal>(`/data/goals/${id}/deposit`, { method: 'POST', token, body: { amount } }),
 
