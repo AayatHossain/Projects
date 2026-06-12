@@ -15,12 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { askAI, buildSnapshot, ChatTurn } from '../../src/ai';
 import { useAuth } from '../../src/auth';
 import { useData } from '../../src/data';
+import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
 
-const GREETING =
-  "Hi! I'm your TakaTrack assistant. Ask me about your spending, budget, or goals — like “Am I overspending?” or “How do I reach my savings goal faster?”";
-
 export default function AssistantScreen() {
+  const { t, language } = useLang();
   const { user } = useAuth();
   const { income, categories, expenses, goals, arcade, spentForCategory, totalSpent } = useData();
 
@@ -35,6 +34,7 @@ export default function AssistantScreen() {
     return [
       `You are the in-app financial assistant for TakaTrack, a personal budgeting app used in Bangladesh. Currency is Bangladeshi Taka (৳).`,
       `Answer in a friendly, practical tone. Keep replies concise — usually 2 to 5 sentences. Give specific, actionable advice using the user's real numbers below. Do not invent data; if something isn't in the snapshot, say you don't have it. Don't give heavy financial/legal disclaimers.`,
+      `Always reply in ${language === 'bn' ? 'Bangla (বাংলা)' : 'English'}, regardless of the language the user writes in.`,
       ``,
       buildSnapshot({
         name: user?.name ?? 'User',
@@ -64,14 +64,14 @@ export default function AssistantScreen() {
       const reply = await askAI(next, buildContext());
       setTurns((prev) => [...prev, { role: 'model', text: reply }]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong.');
+      setError(e instanceof Error ? e.message : t('assistant.error'));
     } finally {
       setBusy(false);
       requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
     }
   }
 
-  const suggestions = ['Am I overspending?', 'Where can I save money?', 'How are my goals doing?'];
+  const suggestions = [t('assistant.suggest1'), t('assistant.suggest2'), t('assistant.suggest3')];
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -80,8 +80,8 @@ export default function AssistantScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
         <View style={styles.header}>
-          <Text style={styles.title}>Assistant</Text>
-          <Text style={styles.subtitle}>Powered by your TakaTrack data</Text>
+          <Text style={styles.title}>{t('assistant.title')}</Text>
+          <Text style={styles.subtitle}>{t('assistant.subtitle')}</Text>
         </View>
 
         <ScrollView
@@ -89,16 +89,16 @@ export default function AssistantScreen() {
           style={styles.flex}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled">
-          <Bubble role="model" text={GREETING} />
+          <Bubble role="model" text={t('assistant.greeting')} />
 
-          {turns.map((t, i) => (
-            <Bubble key={i} role={t.role} text={t.text} />
+          {turns.map((turn, i) => (
+            <Bubble key={i} role={turn.role} text={turn.text} />
           ))}
 
           {busy && (
             <View style={[styles.bubble, styles.modelBubble, styles.typing]}>
               <ActivityIndicator size="small" color={colors.teal} />
-              <Text style={styles.typingText}>Thinking…</Text>
+              <Text style={styles.typingText}>{t('assistant.thinking')}</Text>
             </View>
           )}
 
@@ -120,7 +120,7 @@ export default function AssistantScreen() {
             style={styles.input}
             value={input}
             onChangeText={setInput}
-            placeholder="Ask about your money…"
+            placeholder={t('assistant.inputPlaceholder')}
             placeholderTextColor={colors.muted}
             multiline
             onSubmitEditing={send}

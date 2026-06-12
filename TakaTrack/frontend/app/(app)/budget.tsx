@@ -3,10 +3,12 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useData } from '../../src/data';
+import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Bar, Card, fmt, Ring, ringColor, ScreenTitle, SectionTitle } from '../../src/ui';
+import { Bar, Card, Ring, ringColor, ScreenTitle, SectionTitle } from '../../src/ui';
 
 export default function BudgetScreen() {
+  const { t, catLabel, fmtN } = useLang();
   const { income, categories, spentForCategory, setIncome, saveBudget } = useData();
   const [value, setValue] = useState(String(income));
   const [busyIncome, setBusyIncome] = useState(false);
@@ -24,15 +26,15 @@ export default function BudgetScreen() {
   async function saveIncome() {
     const v = parseFloat(value);
     if (!v || v <= 0) {
-      Alert.alert('Enter income', 'Type your monthly income.');
+      Alert.alert(t('budget.enterIncomeTitle'), t('budget.enterIncomeMsg'));
       return;
     }
     setBusyIncome(true);
     try {
       await setIncome(v);
-      Alert.alert('Saved', 'Monthly income updated.');
+      Alert.alert(t('budget.savedTitle'), t('budget.savedMsg'));
     } catch (e) {
-      Alert.alert('Could not save', e instanceof Error ? e.message : 'Try again.');
+      Alert.alert(t('common.couldNotSave'), e instanceof Error ? e.message : t('common.tryAgain'));
     } finally {
       setBusyIncome(false);
     }
@@ -55,7 +57,7 @@ export default function BudgetScreen() {
       await saveBudget(income, newCategories);
       setEditing(false);
     } catch (e) {
-      Alert.alert('Could not save', e instanceof Error ? e.message : 'Try again.');
+      Alert.alert(t('common.couldNotSave'), e instanceof Error ? e.message : t('common.tryAgain'));
     } finally {
       setBusySave(false);
     }
@@ -64,10 +66,10 @@ export default function BudgetScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <ScreenTitle title="Budget Core" subtitle="Your monthly plan" />
+        <ScreenTitle title={t('budget.title')} subtitle={t('budget.subtitle')} />
 
         <Card>
-          <SectionTitle>Monthly income</SectionTitle>
+          <SectionTitle>{t('budget.monthlyIncome')}</SectionTitle>
           <View style={styles.incomeRow}>
             <Text style={styles.taka}>৳</Text>
             <TextInput
@@ -75,50 +77,50 @@ export default function BudgetScreen() {
               value={value}
               onChangeText={setValue}
               keyboardType="numeric"
-              placeholder="30000"
+              placeholder={t('budget.incomePlaceholder')}
               placeholderTextColor={colors.muted}
             />
             <Pressable style={[styles.setBtn, busyIncome && { opacity: 0.6 }]} onPress={saveIncome} disabled={busyIncome}>
-              <Text style={styles.setBtnText}>Set</Text>
+              <Text style={styles.setBtnText}>{t('budget.set')}</Text>
             </Pressable>
           </View>
           <View style={styles.legend}>
-            <Legend color={colors.green} label="Safe" />
-            <Legend color="#f59e0b" label="Approaching" />
-            <Legend color={colors.red} label="Overspent" />
+            <Legend color={colors.green} label={t('budget.legendSafe')} />
+            <Legend color="#f59e0b" label={t('budget.legendApproaching')} />
+            <Legend color={colors.red} label={t('budget.legendOverspent')} />
           </View>
         </Card>
 
         {/* Allocation summary + warning */}
         <Card style={over > 0 ? styles.warnCard : undefined}>
           <View style={styles.row}>
-            <Text style={styles.summaryLabel}>Total allocated</Text>
+            <Text style={styles.summaryLabel}>{t('budget.totalAllocated')}</Text>
             <Text style={[styles.summaryVal, over > 0 && { color: colors.red }]}>
-              ৳{fmt(allocTotal)} / {fmt(income)}
+              ৳{fmtN(allocTotal)} / {fmtN(income)}
             </Text>
           </View>
           {over > 0 ? (
-            <Text style={styles.warnText}>⚠️ Allocations exceed income by ৳{fmt(over)}. Trim a category or raise your income.</Text>
+            <Text style={styles.warnText}>{t('budget.overBy', { n: fmtN(over) })}</Text>
           ) : (
-            <Text style={styles.okText}>✅ ৳{fmt(income - allocTotal)} of income still unallocated.</Text>
+            <Text style={styles.okText}>{t('budget.unallocated', { n: fmtN(income - allocTotal) })}</Text>
           )}
         </Card>
 
         <Card>
           <View style={[styles.row, { marginBottom: 10 }]}>
-            <Text style={styles.cardTitle}>Categories — allocated vs spent</Text>
+            <Text style={styles.cardTitle}>{t('budget.catVsSpent')}</Text>
             {editing ? (
               <View style={styles.editActions}>
                 <Pressable onPress={() => setEditing(false)} style={styles.cancelBtn}>
-                  <Text style={styles.cancelText}>Cancel</Text>
+                  <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                 </Pressable>
                 <Pressable onPress={saveAllocations} style={[styles.saveBtn, busySave && { opacity: 0.6 }]} disabled={busySave}>
-                  <Text style={styles.saveText}>Save</Text>
+                  <Text style={styles.saveText}>{t('common.save')}</Text>
                 </Pressable>
               </View>
             ) : (
               <Pressable onPress={startEdit} style={styles.editBtn}>
-                <Text style={styles.editText}>✎ Edit</Text>
+                <Text style={styles.editText}>{t('goals.edit')}</Text>
               </Pressable>
             )}
           </View>
@@ -129,14 +131,14 @@ export default function BudgetScreen() {
               return (
                 <View key={c.key} style={styles.editRow}>
                   <Text style={styles.editName}>
-                    {c.icon} {c.label}
+                    {c.icon} {catLabel(c.key, c.label)}
                   </Text>
                   <View style={styles.allocInputWrap}>
                     <Text style={styles.takaSmall}>৳</Text>
                     <TextInput
                       style={styles.allocInput}
                       value={drafts[c.key]}
-                      onChangeText={(t) => setDrafts((p) => ({ ...p, [c.key]: t }))}
+                      onChangeText={(txt) => setDrafts((p) => ({ ...p, [c.key]: txt }))}
                       keyboardType="numeric"
                       placeholder="0"
                       placeholderTextColor={colors.muted}
@@ -148,14 +150,14 @@ export default function BudgetScreen() {
             const pct = c.alloc > 0 ? spent / c.alloc : 0;
             return (
               <View key={c.key} style={styles.env}>
-                <Ring size={56} stroke={7} pct={pct} color={ringColor(pct)} label={`${Math.round(pct * 100)}%`} />
+                <Ring size={56} stroke={7} pct={pct} color={ringColor(pct)} label={`${fmtN(pct * 100)}%`} />
                 <View style={styles.envMeta}>
                   <View style={styles.row}>
                     <Text style={styles.envName}>
-                      {c.icon} {c.label}
+                      {c.icon} {catLabel(c.key, c.label)}
                     </Text>
                     <Text style={styles.muted}>
-                      ৳{fmt(spent)} / {fmt(c.alloc)}
+                      ৳{fmtN(spent)} / {fmtN(c.alloc)}
                     </Text>
                   </View>
                   <Bar pct={pct} color={ringColor(pct)} />
@@ -165,9 +167,9 @@ export default function BudgetScreen() {
           })}
 
           {editing ? (
-            <Text style={styles.hint}>Set how much of your income goes to each category, then Save.</Text>
+            <Text style={styles.hint}>{t('budget.editHintEditing')}</Text>
           ) : (
-            <Text style={styles.hint}>Logging an expense fills the matching category. Tap Edit to change allocations.</Text>
+            <Text style={styles.hint}>{t('budget.editHintDefault')}</Text>
           )}
         </Card>
       </ScrollView>
