@@ -92,6 +92,9 @@ export const api = {
         body: { income, categories },
       }),
 
+    resetBudget: (token: string) =>
+      request<{ ok: boolean }>('/data/reset', { method: 'POST', token }),
+
     addExpense: (
       token: string,
       e: { catKey: string; catLabel: string; note: string; amt: number },

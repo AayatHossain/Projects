@@ -9,9 +9,10 @@ import { Bar, Card, Ring, ringColor, ScreenTitle, SectionTitle } from '../../src
 
 export default function BudgetScreen() {
   const { t, catLabel, fmtN } = useLang();
-  const { income, categories, spentForCategory, setIncome, saveBudget } = useData();
+  const { income, categories, spentForCategory, setIncome, saveBudget, resetBudget } = useData();
   const [value, setValue] = useState(String(income));
   const [busyIncome, setBusyIncome] = useState(false);
+  const [busyReset, setBusyReset] = useState(false);
 
   // allocation edit mode
   const [editing, setEditing] = useState(false);
@@ -63,6 +64,27 @@ export default function BudgetScreen() {
     }
   }
 
+  function confirmReset() {
+    Alert.alert(t('budget.resetTitle'), t('budget.resetMsg'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('budget.reset'),
+        style: 'destructive',
+        onPress: async () => {
+          setBusyReset(true);
+          try {
+            await resetBudget();
+            setEditing(false);
+          } catch (e) {
+            Alert.alert(t('common.couldNotSave'), e instanceof Error ? e.message : t('common.tryAgain'));
+          } finally {
+            setBusyReset(false);
+          }
+        },
+      },
+    ]);
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -104,6 +126,12 @@ export default function BudgetScreen() {
           ) : (
             <Text style={styles.okText}>{t('budget.unallocated', { n: fmtN(income - allocTotal) })}</Text>
           )}
+          <Pressable
+            style={[styles.resetBtn, busyReset && { opacity: 0.6 }]}
+            onPress={confirmReset}
+            disabled={busyReset}>
+            <Text style={styles.resetText}>↺ {t('budget.reset')}</Text>
+          </Pressable>
         </Card>
 
         <Card>
@@ -205,6 +233,8 @@ const styles = StyleSheet.create({
   summaryVal: { fontSize: 14, fontWeight: '800', color: colors.ink },
   warnText: { fontSize: 12, color: '#b91c1c', marginTop: 8, lineHeight: 18, fontWeight: '600' },
   okText: { fontSize: 12, color: colors.green, marginTop: 8 },
+  resetBtn: { alignSelf: 'flex-start', marginTop: 12, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, borderWidth: 1.5, borderColor: '#fca5a5', backgroundColor: colors.redTint },
+  resetText: { fontSize: 12.5, fontWeight: '800', color: colors.red },
 
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardTitle: { fontSize: 14, fontWeight: '800', color: colors.ink },

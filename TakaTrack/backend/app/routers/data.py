@@ -31,7 +31,7 @@ DEFAULT_CATEGORIES = [
     {"key": "transport", "label": "Transport", "icon": "🚍", "alloc": 4000},
     {"key": "utilities", "label": "Utilities & Rent", "icon": "🏠", "alloc": 11000},
     {"key": "lifestyle", "label": "Lifestyle & Family", "icon": "👨‍👩‍👧", "alloc": 4000},
-    {"key": "savings", "label": "Savings", "icon": "🏦", "alloc": 2000},
+    {"key": "health", "label": "Health", "icon": "🏥", "alloc": 2000},
     {"key": "others", "label": "Others", "icon": "🗂️", "alloc": 0},
 ]
 DEFAULT_GOALS = [
@@ -145,6 +145,19 @@ def set_budget(body: BudgetIn, user: UserOut = Depends(current_user)):
     ref(f"{_root(user.uid)}/budget").set(
         {"income": body.income, "categories": [c.model_dump() for c in body.categories]}
     )
+    return {"ok": True}
+
+
+@router.post("/reset")
+def reset_budget(user: UserOut = Depends(current_user)):
+    """Reset all category allocations to 0 and clear all expenses (income kept).
+    Also re-seeds the default category set, so this corrects any stale category list."""
+    root = _root(user.uid)
+    budget = ref(f"{root}/budget").get() or {}
+    income = budget.get("income", DEFAULT_INCOME)
+    categories = [{**dict(c), "alloc": 0} for c in DEFAULT_CATEGORIES]
+    ref(f"{root}/budget").set({"income": income, "categories": categories})
+    ref(f"{root}/expenses").delete()
     return {"ok": True}
 
 

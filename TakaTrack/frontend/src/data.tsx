@@ -19,6 +19,7 @@ type DataState = {
   deleteExpense: (id: string) => Promise<void>;
   setIncome: (income: number) => Promise<void>;
   saveBudget: (income: number, categories: Category[]) => Promise<void>;
+  resetBudget: () => Promise<void>;
   addGoal: (g: { name: string; icon: string; target: number; perDay?: number }) => Promise<void>;
   updateGoal: (
     id: string,
@@ -104,6 +105,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       await api.data.setBudget(token!, newIncome, newCategories);
       setIncomeState(newIncome);
       setCategories(newCategories);
+    },
+    resetBudget: async () => {
+      await api.data.resetBudget(token!);
+      await refresh(); // reload reset categories (0 allocations) + cleared expenses
     },
     addGoal: async (g) => {
       const created = await api.data.addGoal(token!, g);
