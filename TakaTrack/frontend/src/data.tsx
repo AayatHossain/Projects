@@ -70,11 +70,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  // Budget spending is scoped to the current calendar month, so the bars auto-reset
+  // on the 1st. Old expenses stay in history; they just stop counting toward this
+  // month's budget. (No data is deleted.)
+  function isThisMonth(ts: number) {
+    const d = new Date(ts);
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }
   function spentForCategory(key: string) {
-    return expenses.filter((e) => e.catKey === key).reduce((s, e) => s + e.amt, 0);
+    return expenses
+      .filter((e) => e.catKey === key && isThisMonth(e.ts))
+      .reduce((s, e) => s + e.amt, 0);
   }
   function totalSpent() {
-    return expenses.reduce((s, e) => s + e.amt, 0);
+    return expenses.filter((e) => isThisMonth(e.ts)).reduce((s, e) => s + e.amt, 0);
   }
 
   const value: DataState = {

@@ -23,7 +23,7 @@ import { Bar, Card, Ring, ringColor, SectionTitle } from '../../src/ui';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { language, toggle, t, catLabel, goalLabel, fmtN } = useLang();
+  const { language, toggle, t, catLabel, goalLabel, fmtN, formatDate } = useLang();
   const { token, user, logout } = useAuth();
   const { loading, income, categories, expenses, goals, arcade, spentForCategory, totalSpent, refresh } =
     useData();
@@ -146,7 +146,7 @@ export default function HomeScreen() {
             </View>
             <View style={[styles.row, { marginTop: 10 }]}>
               <Text style={styles.pill}>⭐ {t('home.takaPoints', { n: fmtN(arcade.points) })}</Text>
-              <Text style={styles.pill}>📂 {t('home.categories', { n: fmtN(categories.length) })}</Text>
+              <Text style={styles.pill}>📅 {formatDate(new Date())}</Text>
             </View>
           </Card>
         </FadeInUp>

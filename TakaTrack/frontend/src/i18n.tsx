@@ -372,6 +372,30 @@ function formatNumber(n: number, lang: Lang) {
   return lang === 'bn' ? toBnDigits(grouped) : grouped;
 }
 
+const MONTHS_EN = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+const MONTHS_BN = [
+  'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+  'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর',
+];
+
+function ordinal(n: number) {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
+}
+
+// e.g. "14th June, 2026" (en) / "১৪ জুন, ২০২৬" (bn).
+function formatDate(d: Date, lang: Lang) {
+  const day = d.getDate();
+  const month = (lang === 'bn' ? MONTHS_BN : MONTHS_EN)[d.getMonth()];
+  const year = d.getFullYear();
+  if (lang === 'bn') return `${toBnDigits(String(day))} ${month}, ${toBnDigits(String(year))}`;
+  return `${day}${ordinal(day)} ${month}, ${year}`;
+}
+
 type LangState = {
   language: Lang;
   setLanguage: (l: Lang) => void;
@@ -387,6 +411,8 @@ type LangState = {
   // Thousands-grouped number with digits localized to the current language
   // (Bangla numerals in bn). Use for all amounts, counts, and percentages.
   fmtN: (n: number) => string;
+  // Localized date string, e.g. "14th June, 2026" / "১৪ জুন, ২০২৬".
+  formatDate: (d: Date) => string;
 };
 
 const LangContext = createContext<LangState | undefined>(undefined);
@@ -419,6 +445,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       itemLabel: (item) => (language === 'bn' ? ITEM_BN[item] ?? item : item),
       goalLabel: (name) => (language === 'bn' ? GOAL_BN[name] ?? name : name),
       fmtN: (n) => formatNumber(n, language),
+      formatDate: (d) => formatDate(d, language),
     };
   }, [language]);
 
