@@ -2,14 +2,45 @@ import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Category } from '../../src/api';
 import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
 import { Bar, Card, Ring, ringColor, ScreenTitle, SectionTitle } from '../../src/ui';
 
+// Default budget template (mirrors the backend seed). Setting an income spreads it
+// across the categories using these proportions.
+const DEFAULT_ALLOC: Record<string, number> = {
+  food: 9000,
+  transport: 4000,
+  utilities: 11000,
+  lifestyle: 4000,
+  health: 2000,
+  others: 0,
+};
+const DEFAULT_TOTAL = Object.values(DEFAULT_ALLOC).reduce((s, n) => s + n, 0); // 30000
+
+/** Distribute `income` across categories by the default proportions; total == income. */
+function allocateByIncome(categories: Category[], income: number): Category[] {
+  const allocs = categories.map((c) =>
+    Math.round((income * (DEFAULT_ALLOC[c.key] ?? 0)) / DEFAULT_TOTAL),
+  );
+  // Absorb rounding into the largest category so allocations sum exactly to income.
+  const sum = allocs.reduce((s, n) => s + n, 0);
+  const diff = income - sum;
+  if (diff !== 0 && allocs.length) {
+    let idx = 0;
+    allocs.forEach((a, i) => {
+      if (a > allocs[idx]) idx = i;
+    });
+    allocs[idx] = Math.max(0, allocs[idx] + diff);
+  }
+  return categories.map((c, i) => ({ ...c, alloc: allocs[i] }));
+}
+
 export default function BudgetScreen() {
   const { t, catLabel, fmtN } = useLang();
-  const { income, categories, spentForCategory, setIncome, saveBudget, resetBudget } = useData();
+  const { income, categories, spentForCategory, saveBudget, resetBudget } = useData();
   const [value, setValue] = useState(String(income));
   const [busyIncome, setBusyIncome] = useState(false);
   const [busyReset, setBusyReset] = useState(false);
@@ -32,7 +63,8 @@ export default function BudgetScreen() {
     }
     setBusyIncome(true);
     try {
-      await setIncome(v);
+      // Setting income auto-distributes it across the categories by default.
+      await saveBudget(v, allocateByIncome(categories, v));
       Alert.alert(t('budget.savedTitle'), t('budget.savedMsg'));
     } catch (e) {
       Alert.alert(t('common.couldNotSave'), e instanceof Error ? e.message : t('common.tryAgain'));
