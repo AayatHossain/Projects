@@ -11,7 +11,7 @@ from .routers import ai, auth, data
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_firebase()
-    yield
+    yield[]
 
 
 app = FastAPI(title="TakaTrack API", version="0.1.0", lifespan=lifespan)
