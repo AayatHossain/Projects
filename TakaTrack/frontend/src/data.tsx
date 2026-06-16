@@ -14,7 +14,6 @@ type DataState = {
   refresh: () => Promise<void>;
   spentForCategory: (key: string) => number;
   totalSpent: () => number;
-  // mutations
   logExpense: (e: { catKey: string; catLabel: string; note: string; amt: number }) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
   setIncome: (income: number) => Promise<void>;
@@ -67,12 +66,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setLoading(true);
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // Budget spending is scoped to the current calendar month, so the bars auto-reset
-  // on the 1st. Old expenses stay in history; they just stop counting toward this
-  // month's budget. (No data is deleted.)
   function isThisMonth(ts: number) {
     const d = new Date(ts);
     const now = new Date();
@@ -118,7 +113,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     },
     resetBudget: async () => {
       await api.data.resetBudget(token!);
-      await refresh(); // reload reset categories (0 allocations) + cleared expenses
+      await refresh();
     },
     addGoal: async (g) => {
       const created = await api.data.addGoal(token!, g);

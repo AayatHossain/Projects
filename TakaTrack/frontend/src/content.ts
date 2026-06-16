@@ -1,6 +1,3 @@
-// Static content for the Expense Logger, Goals, and Literacy Arcade.
-// AI-generated scenarios/quizzes will replace the arcade content later.
-
 export const CATEGORY_GROUPS = [
   { key: 'food', label: 'Food & Groceries', icon: '🍚', items: ['Bazar', 'Restaurant', 'Tea / Snacks (tong)'] },
   { key: 'transport', label: 'Transport', icon: '🚍', items: ['Rickshaw', 'CNG', 'Uber / Pathao', 'Bus', 'Metro rail'] },

@@ -1,5 +1,4 @@
 export const colors = {
-  // brand — teal family
   teal: '#0d9488',
   tealDark: '#0f766e',
   tealDeep: '#115e59',
@@ -7,20 +6,17 @@ export const colors = {
   tealTint: '#ecfdf5',
   tealTint2: '#d1fae5',
 
-  // text — stronger contrast for readability
-  ink: '#0b1220', // headings (near-black)
-  ink2: '#1e293b', // strong body
-  body: '#334155', // default body
-  muted: '#51607a', // secondary (darker than a typical slate-500)
-  faint: '#94a3b8', // hints only
+  ink: '#0b1220',
+  ink2: '#1e293b',
+  body: '#334155',
+  muted: '#51607a',
+  faint: '#94a3b8',
 
-  // surfaces & lines
-  bg: '#e8edf3', // app background (cool, so white cards pop)
+  bg: '#e8edf3',
   card: '#ffffff',
-  line: '#e3e8ef', // subtle border
-  lineStrong: '#cbd5e1', // dividers
+  line: '#e3e8ef',
+  lineStrong: '#cbd5e1',
 
-  // semantic
   red: '#dc2626',
   redTint: '#fef2f2',
   amber: '#f59e0b',

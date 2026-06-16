@@ -27,7 +27,6 @@ export default function ExpensesScreen() {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
-  // session-only custom chips, per category group
   const [customItems, setCustomItems] = useState<Record<string, string[]>>({});
   const [customForKey, setCustomForKey] = useState<string | null>(null);
   const [customInput, setCustomInput] = useState('');

@@ -24,7 +24,6 @@ from .auth import current_user
 router = APIRouter(prefix="/data", tags=["data"])
 
 
-# ---- defaults seeded for a brand-new user (mirrors the prototype) ----
 DEFAULT_INCOME = 30000
 DEFAULT_CATEGORIES = [
     {"key": "food", "label": "Food & Groceries", "icon": "🍚", "alloc": 9000},
@@ -75,7 +74,6 @@ def _list_with_ids(node: dict | None) -> list[dict]:
     return [{"id": k, **v} for k, v in node.items()]
 
 
-# ---------------- schemas ----------------
 class CategoryIn(BaseModel):
     key: str
     label: str
@@ -119,7 +117,6 @@ class CompleteIn(BaseModel):
     points: int = Field(ge=0, le=1000)
 
 
-# ---------------- endpoints ----------------
 @router.get("/overview")
 def overview(user: UserOut = Depends(current_user)):
     """Everything the app needs in one call (used by every tab)."""
@@ -204,7 +201,6 @@ def update_goal(gid: str, body: GoalUpdate, user: UserOut = Depends(current_user
         raise HTTPException(status_code=404, detail="Goal not found.")
 
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
-    # Keep saved within [0, target] after any change to either field.
     new_target = updates.get("target", node["target"])
     new_saved = updates.get("saved", node.get("saved", 0))
     updates["saved"] = max(0, min(new_saved, new_target))

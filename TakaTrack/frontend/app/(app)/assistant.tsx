@@ -29,7 +29,6 @@ export default function AssistantScreen() {
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
-  // System instruction: chat style + the shared financial snapshot.
   function buildContext(): string {
     return [
       `You are the in-app financial assistant for TakaTrack, a personal budgeting app used in Bangladesh. Currency is Bangladeshi Taka (৳).`,

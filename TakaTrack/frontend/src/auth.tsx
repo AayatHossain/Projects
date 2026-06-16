@@ -21,7 +21,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<ApiUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // On startup, restore a saved token and validate it against the backend.
   useEffect(() => {
     (async () => {
       try {
@@ -32,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(me);
         }
       } catch {
-        await AsyncStorage.removeItem(TOKEN_KEY); // expired / invalid
+        await AsyncStorage.removeItem(TOKEN_KEY);
       } finally {
         setLoading(false);
       }

@@ -1,16 +1,9 @@
 import { api, Arcade, Category, Expense, Goal } from './api';
 
-// The app calls our backend's /ai/chat proxy (authenticated with the user's JWT);
-// the LLM key lives only on the server, so it's never shipped in the app bundle.
-
 export type ChatTurn = { role: 'user' | 'model'; text: string };
 
 type GenOpts = { temperature?: number; maxOutputTokens?: number };
 
-/**
- * Send a conversation (system instruction + history) to the AI via the backend
- * proxy. Returns the reply text, or throws on error.
- */
 export async function askAI(
   token: string,
   history: ChatTurn[],
@@ -29,8 +22,6 @@ export async function askAI(
   return text.trim();
 }
 
-// ---- Shared financial context -------------------------------------------------
-
 export type FinanceData = {
   name: string;
   income: number;
@@ -44,7 +35,6 @@ export type FinanceData = {
 
 const taka = (n: number) => `৳${Math.round(n).toLocaleString('en-IN')}`;
 
-/** Compact snapshot of the user's money the model can reason over (summaries only). */
 export function buildSnapshot(d: FinanceData): string {
   const spent = d.totalSpent();
   const left = d.income - spent;
@@ -85,10 +75,6 @@ export function buildSnapshot(d: FinanceData): string {
   ].join('\n');
 }
 
-/**
- * Generate a single short insight for the home card. Pass previously shown
- * insights in `avoid` so a reload produces a fresh angle.
- */
 export async function generateInsight(
   token: string,
   d: FinanceData,
@@ -111,15 +97,11 @@ export async function generateInsight(
       : `Give me an insight.`;
 
   return askAI(token, [{ role: 'user', text: ask }], system, {
-    temperature: 1.0, // higher = more variety across reloads
+    temperature: 1.0,
     maxOutputTokens: 200,
   });
 }
 
-/**
- * Generate several distinct insights in a single API call (cheaper than N calls).
- * Returns an array of insight strings.
- */
 export async function generateInsights(
   token: string,
   d: FinanceData,
@@ -142,7 +124,6 @@ export async function generateInsights(
     maxOutputTokens: 500,
   });
 
-  // Split into lines, strip any stray numbering/bullets the model may add.
   return text
     .split('\n')
     .map((l) => l.replace(/^\s*(\d+[.)]|[-•*])\s*/, '').trim())

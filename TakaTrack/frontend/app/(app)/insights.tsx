@@ -37,13 +37,10 @@ export default function InsightsScreen() {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, user, income, categories, expenses, goals, arcade, language]);
 
-  // Generate once on open.
   useEffect(() => {
     generate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

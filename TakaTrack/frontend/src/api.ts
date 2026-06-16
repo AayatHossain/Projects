@@ -70,7 +70,6 @@ export const api = {
   me: (token: string) => request<ApiUser>('/auth/me', { token }),
 
   ai: {
-    // Proxy to the server-side LLM. The app never holds an AI key.
     chat: (
       token: string,
       body: {

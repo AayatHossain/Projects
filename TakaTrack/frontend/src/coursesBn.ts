@@ -1,8 +1,3 @@
-// Bangla text overlay for the Learning courses. The English COURSES array stays the
-// structural source of truth (it owns the quiz `correct` indices). Here we only carry
-// translated strings; the merge below falls back to English for any missing field,
-// so partial translations never break the screen.
-
 import { COURSES, Course } from './courses';
 
 type QT = { q?: string; options?: string[]; why?: string };
@@ -552,7 +547,6 @@ const BN: Record<string, CT> = {
   },
 };
 
-/** Returns the courses localized for the given language (English structure preserved). */
 export function coursesFor(lang: 'en' | 'bn'): Course[] {
   if (lang !== 'bn') return COURSES;
   return COURSES.map((c) => {

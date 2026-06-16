@@ -6,7 +6,6 @@ import jwt
 
 from .config import settings
 
-# bcrypt only hashes the first 72 bytes of a password; longer inputs raise.
 _BCRYPT_MAX_BYTES = 72
 
 

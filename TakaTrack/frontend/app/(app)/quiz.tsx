@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,11 +19,29 @@ export default function QuizScreen() {
   const course = coursesFor(language).find((c) => c.key === params.course);
   const lectureIndex = parseInt(params.lecture ?? '0', 10);
   const lecture = course?.lectures[lectureIndex];
+  const quiz = lecture?.quiz ?? [];
+  const total = quiz.length;
 
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [round, setRound] = useState(0);
+
+  const question = quiz[index];
+
+  const shuffled = useMemo(() => {
+    if (!question) return { options: [] as string[], correct: 0 };
+    const order = question.options.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return {
+      options: order.map((i) => question.options[i]),
+      correct: order.indexOf(question.correct),
+    };
+  }, [question, round]);
 
   if (!course || !lecture) {
     return (
@@ -36,14 +54,10 @@ export default function QuizScreen() {
     );
   }
 
-  const quiz = lecture.quiz;
-  const total = quiz.length;
-  const question = quiz[index];
-
   function pick(i: number) {
     if (picked !== null) return;
     setPicked(i);
-    if (i === question.correct) setScore((s) => s + 1);
+    if (i === shuffled.correct) setScore((s) => s + 1);
   }
 
   function next() {
@@ -51,7 +65,6 @@ export default function QuizScreen() {
       setIndex(index + 1);
       setPicked(null);
     } else {
-      // Finish: record completion + award 2 points per correct answer.
       completeActivity(`quiz:${course!.key}:${lectureIndex}`, score * 2);
       setFinished(true);
     }
@@ -62,6 +75,7 @@ export default function QuizScreen() {
     setPicked(null);
     setScore(0);
     setFinished(false);
+    setRound((r) => r + 1);
   }
 
   if (finished) {
@@ -103,9 +117,9 @@ export default function QuizScreen() {
 
         <Card>
           <Text style={styles.question}>{question.q}</Text>
-          {question.options.map((opt, i) => {
+          {shuffled.options.map((opt, i) => {
             const reveal = picked !== null;
-            const isCorrect = i === question.correct;
+            const isCorrect = i === shuffled.correct;
             const chosen = picked === i;
             return (
               <Pressable
@@ -124,7 +138,7 @@ export default function QuizScreen() {
 
           {picked !== null && (
             <Text style={styles.feedback}>
-              {picked === question.correct ? t('quiz.correctPrefix') : t('quiz.wrongPrefix')}
+              {picked === shuffled.correct ? t('quiz.correctPrefix') : t('quiz.wrongPrefix')}
               {question.why}
             </Text>
           )}

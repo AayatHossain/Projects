@@ -4,13 +4,11 @@ import Svg, { Circle } from 'react-native-svg';
 
 import { colors, radius, shadow } from './theme';
 
-/** Thousands separator without relying on Intl (Hermes-safe). */
 export const fmt = (n: number) =>
   Math.round(n)
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-/** Green under 75%, amber under 100%, red at/over budget. */
 export const ringColor = (pct: number) =>
   pct < 0.75 ? colors.green : pct < 1 ? colors.amber : colors.red;
 
@@ -18,7 +16,6 @@ export function Card({ children, style }: { children: React.ReactNode; style?: V
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
-/** Large page heading with optional subtitle and a right-side slot. */
 export function ScreenTitle({
   title,
   subtitle,
@@ -56,7 +53,7 @@ export function Bar({ pct, color }: { pct: number; color?: string }) {
       toValue: target,
       duration: 600,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: false, // animating layout width
+      useNativeDriver: false,
     }).start();
   }, [target, anim]);
 

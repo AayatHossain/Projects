@@ -4,8 +4,6 @@ import { Tabs } from 'expo-router';
 import { DataProvider } from '../../src/data';
 import { colors } from '../../src/theme';
 
-// Use a filled glyph when the tab is active, the outline variant when it isn't —
-// the standard iOS/Material tab-bar pattern. Looks hand-built, not emoji-y.
 function tabIcon(active: keyof typeof Ionicons.glyphMap, inactive: keyof typeof Ionicons.glyphMap) {
   return ({ focused, color, size }: { focused: boolean; color: string; size: number }) => (
     <Ionicons name={focused ? active : inactive} size={size ?? 22} color={color} />
@@ -54,11 +52,8 @@ export default function AppLayout() {
           name="assistant"
           options={{ title: 'Assistant', tabBarIcon: tabIcon('sparkles', 'sparkles-outline') }}
         />
-        {/* Routable via the avatar on Home, but hidden from the tab bar. */}
         <Tabs.Screen name="account" options={{ href: null }} />
-        {/* Routable from the Home insight card, hidden from the tab bar. */}
         <Tabs.Screen name="insights" options={{ href: null }} />
-        {/* Quiz runner, opened from a lecture in Learning. */}
         <Tabs.Screen name="quiz" options={{ href: null }} />
       </Tabs>
     </DataProvider>

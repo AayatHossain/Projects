@@ -1,11 +1,8 @@
-// Learning content for the Learning tab. English now; Bangla translations to follow.
-// Each course has lectures; each lecture has reading `body` bullets + a 10-question quiz.
-
 export type QuizQuestion = {
   q: string;
   options: string[];
-  correct: number; // index into options
-  why: string; // short explanation shown after answering
+  correct: number;
+  why: string;
 };
 
 export type Lecture = {
@@ -17,7 +14,7 @@ export type Lecture = {
 export type Course = {
   key: string;
   title: string;
-  icon: string; // Ionicons glyph name
+  icon: string;
   blurb: string;
   lectures: Lecture[];
 };

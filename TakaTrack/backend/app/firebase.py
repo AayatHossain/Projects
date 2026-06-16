@@ -20,7 +20,6 @@ _initialized = False
 def _resolve_credentials_path() -> str:
     path = settings.firebase_credentials
     if not os.path.isabs(path):
-        # Resolve relative to the backend/ folder (parent of app/).
         backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(backend_dir, path)
     return path

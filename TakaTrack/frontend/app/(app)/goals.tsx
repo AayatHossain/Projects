@@ -34,7 +34,6 @@ function GoalCard({
   const [amount, setAmount] = useState('500');
   const [busy, setBusy] = useState(false);
 
-  // edit mode
   const [editing, setEditing] = useState(false);
   const [savedDraft, setSavedDraft] = useState('');
   const [targetDraft, setTargetDraft] = useState('');
@@ -60,7 +59,6 @@ function GoalCard({
   function startEdit() {
     setSavedDraft(String(goal.saved));
     setTargetDraft(String(goal.target));
-    // Show the goal's full timeline (target ÷ daily rate), not just the days left.
     setDaysDraft(String(Math.max(1, Math.round(goal.target / goal.perDay))));
     setEditing(true);
   }
@@ -169,7 +167,6 @@ export default function GoalsScreen() {
   const { t, goalLabel, fmtN } = useLang();
   const { goals, deposit, addGoal, updateGoal, deleteGoal } = useData();
 
-  // create-goal form (used by both custom entry and templates)
   const [name, setName] = useState('');
   const [target, setTarget] = useState('');
   const [days, setDays] = useState('90');
@@ -245,7 +242,6 @@ export default function GoalsScreen() {
           ))
         )}
 
-        {/* Create a goal */}
         <Card>
           <Text style={styles.createHeading}>{t('goals.createHeading')}</Text>
           <Text style={styles.createSub}>{t('goals.createSub')}</Text>

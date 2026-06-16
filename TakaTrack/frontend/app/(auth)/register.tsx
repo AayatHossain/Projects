@@ -38,7 +38,6 @@ export default function RegisterScreen() {
     setBusy(true);
     try {
       await register(name.trim(), email.trim(), password);
-      // On success the root navigator redirects into the app.
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Registration failed.');
     } finally {

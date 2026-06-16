@@ -5,8 +5,6 @@ export type Lang = 'en' | 'bn';
 
 const LANG_KEY = 'takatrack_lang';
 
-// English is the source of truth for the set of keys. Add a key here first, then
-// give it a Bangla value below. Use {placeholders} for interpolated values.
 const en = {
   'common.logout': 'Log out',
   'common.cancel': 'Cancel',
@@ -150,9 +148,6 @@ const en = {
   'quiz.backToCourse': 'Back to course',
   'quiz.retake': 'Retake quiz',
 
-  // Category labels — keyed by the stable category `key` so they localize whether
-  // the data comes from the backend or content.ts. Custom categories fall back to
-  // their stored label.
   'cat.food': 'Food & Groceries',
   'cat.transport': 'Transport',
   'cat.utilities': 'Utilities & Rent',
@@ -318,9 +313,6 @@ const bn: Record<TKey, string> = {
 
 const dictionaries: Record<Lang, Record<TKey, string>> = { en, bn };
 
-// Expense item chips from content.ts. Keyed by the English (canonical) value, which
-// stays the stored identity — only the display is translated. Custom/free-text
-// items fall back to themselves.
 const ITEM_BN: Record<string, string> = {
   Bazar: 'বাজার',
   Restaurant: 'রেস্টুরেন্ট',
@@ -344,8 +336,6 @@ const ITEM_BN: Record<string, string> = {
   Repairs: 'মেরামত',
 };
 
-// Goal names from templates / seeded defaults. Keyed by the English stored name;
-// custom user-typed names fall back to themselves.
 const GOAL_BN: Record<string, string> = {
   'Hajj / Umrah': 'হজ্জ / ওমরাহ',
   'Eid Shopping': 'ঈদের কেনাকাটা',
@@ -364,7 +354,6 @@ function interpolate(str: string, vars?: Record<string, string | number>) {
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
 const toBnDigits = (s: string) => s.replace(/[0-9]/g, (d) => BN_DIGITS[+d]);
 
-// Thousands-grouped integer (Hermes-safe), with digits localized per language.
 function formatNumber(n: number, lang: Lang) {
   const grouped = Math.round(n)
     .toString()
@@ -387,7 +376,6 @@ function ordinal(n: number) {
   return s[(v - 20) % 10] || s[v] || s[0];
 }
 
-// e.g. "14th June, 2026" (en) / "১৪ জুন, ২০২৬" (bn).
 function formatDate(d: Date, lang: Lang) {
   const day = d.getDate();
   const month = (lang === 'bn' ? MONTHS_BN : MONTHS_EN)[d.getMonth()];
@@ -401,17 +389,10 @@ type LangState = {
   setLanguage: (l: Lang) => void;
   toggle: () => void;
   t: (key: TKey, vars?: Record<string, string | number>) => string;
-  // Localize a category by its stable key; falls back to the stored label for
-  // custom categories that have no translation.
   catLabel: (key: string, fallback: string) => string;
-  // Localize a known expense item; falls back to the value itself (custom/free text).
   itemLabel: (item: string) => string;
-  // Localize a known goal name (templates/seeded); falls back to the name itself.
   goalLabel: (name: string) => string;
-  // Thousands-grouped number with digits localized to the current language
-  // (Bangla numerals in bn). Use for all amounts, counts, and percentages.
   fmtN: (n: number) => string;
-  // Localized date string, e.g. "14th June, 2026" / "১৪ জুন, ২০২৬".
   formatDate: (d: Date) => string;
 };
 
@@ -420,7 +401,6 @@ const LangContext = createContext<LangState | undefined>(undefined);
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLang] = useState<Lang>('en');
 
-  // Restore the saved choice on startup.
   useEffect(() => {
     (async () => {
       const saved = await AsyncStorage.getItem(LANG_KEY);

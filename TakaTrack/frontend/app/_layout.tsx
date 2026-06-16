@@ -13,7 +13,6 @@ function RootNavigator() {
   const segments = useSegments();
   const router = useRouter();
 
-  // Redirect based on auth state whenever it (or the route) changes.
   useEffect(() => {
     if (loading) return;
     const inAuthGroup = segments[0] === '(auth)';

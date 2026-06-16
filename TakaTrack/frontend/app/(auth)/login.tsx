@@ -33,7 +33,6 @@ export default function LoginScreen() {
     setBusy(true);
     try {
       await login(email.trim(), password);
-      // On success the root navigator redirects into the app.
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Login failed.');
     } finally {

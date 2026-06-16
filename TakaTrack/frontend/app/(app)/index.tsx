@@ -36,12 +36,9 @@ export default function HomeScreen() {
   const spent = totalSpent();
   const pct = income > 0 ? spent / income : 0;
 
-  // Count the hero amount up from 0; the ring and the bar fill from the same value.
   const animSpent = useCountUp(loading ? 0 : spent);
   const animRatio = income > 0 ? Math.min(animSpent / income, 1) : 0;
 
-  // Ask Gemini for a fresh insight. Passing the current one as `avoid` makes the
-  // reload button produce a different angle instead of repeating.
   const newInsight = useCallback(async () => {
     setInsightLoading(true);
     setInsightError(null);
@@ -58,19 +55,14 @@ export default function HomeScreen() {
     } finally {
       setInsightLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, user, income, categories, expenses, goals, arcade, insight, language]);
 
-  // Generate one automatically once the financial data has loaded.
   useEffect(() => {
     if (!loading && !insight && !insightLoading) newInsight();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
 
-  // Re-generate the insight in the new language when the user switches.
   useEffect(() => {
     if (!loading && insight) newInsight();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   async function onRefresh() {
@@ -121,7 +113,6 @@ export default function HomeScreen() {
         style={styles.bgWrap}
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-        {/* Hero */}
         <FadeInUp delay={0}>
           <Card style={styles.hero}>
             <View style={styles.row}>
@@ -151,7 +142,6 @@ export default function HomeScreen() {
           </Card>
         </FadeInUp>
 
-        {/* AI insight (Gemini) */}
         <FadeInUp delay={90}>
         <Card style={styles.ai}>
           <View style={styles.aiHeader}>
@@ -186,15 +176,12 @@ export default function HomeScreen() {
         </Card>
         </FadeInUp>
 
-        {/* Expense progress by category */}
         <FadeInUp delay={180}>
         <Card>
           <SectionTitle>{t('home.expenseProgress')}</SectionTitle>
           {categories.map((c) => {
             const s = spentForCategory(c.key);
             const noBudget = c.alloc <= 0;
-            // No allocation yet (e.g. Others at 0/0): show a full, safe bar until the
-            // user sets a budget; after that it's the normal spent/allocated ratio.
             const p = noBudget ? 1 : s / c.alloc;
             const barColor = noBudget && s <= 0 ? colors.green : ringColor(p);
             return (
@@ -214,7 +201,6 @@ export default function HomeScreen() {
         </Card>
         </FadeInUp>
 
-        {/* Savings progress */}
         <FadeInUp delay={270}>
         <Card>
           <SectionTitle>{t('home.savingsProgress')}</SectionTitle>
@@ -245,7 +231,6 @@ export default function HomeScreen() {
   );
 }
 
-// Count a number up from 0 to `target` on mount / when target changes.
 function useCountUp(target: number, duration = 900) {
   const [value, setValue] = useState(0);
   const anim = useRef(new Animated.Value(0)).current;
@@ -262,7 +247,6 @@ function useCountUp(target: number, duration = 900) {
   return value;
 }
 
-// Fade + slide a card in on mount, with an optional stagger delay.
 function FadeInUp({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -285,7 +269,6 @@ function FadeInUp({ children, delay = 0 }: { children: React.ReactNode; delay?: 
   );
 }
 
-// Cross-fade children whenever `trigger` changes (used for the AI insight text).
 function FadeSwap({ children, trigger }: { children: React.ReactNode; trigger: string }) {
   const anim = useRef(new Animated.Value(1)).current;
   useEffect(() => {

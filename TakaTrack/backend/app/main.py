@@ -16,7 +16,6 @@ from .routers import ai, auth, data
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Fail fast at startup if Firebase can't be initialised.
     init_firebase()
     yield
 

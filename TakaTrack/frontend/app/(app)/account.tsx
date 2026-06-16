@@ -18,7 +18,6 @@ export default function AccountScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header with back button */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={colors.ink} />
@@ -28,7 +27,6 @@ export default function AccountScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Profile summary */}
         <View style={styles.profile}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initial}</Text>
@@ -37,7 +35,6 @@ export default function AccountScreen() {
           <Text style={styles.email}>{user?.email ?? '—'}</Text>
         </View>
 
-        {/* Account details */}
         <Card>
           <SectionTitle>Account details</SectionTitle>
           <Row label="Name" value={user?.name ?? '—'} />
@@ -45,7 +42,6 @@ export default function AccountScreen() {
           <Row label="Member ID" value={user?.uid ?? '—'} last />
         </Card>
 
-        {/* Finance snapshot */}
         <Card>
           <SectionTitle>Your finances</SectionTitle>
           <Row label="Monthly income" value={`৳${fmt(income)}`} />

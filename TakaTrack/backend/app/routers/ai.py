@@ -19,7 +19,7 @@ OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 
 
 class Turn(BaseModel):
-    role: str  # "user" or "model"
+    role: str
     text: str
 
 
@@ -38,7 +38,6 @@ def chat(body: ChatIn, user: UserOut = Depends(current_user)):
 
     messages = [{"role": "system", "content": body.system}]
     for t in body.messages:
-        # OpenAI uses "assistant" where the app uses "model".
         messages.append(
             {"role": "assistant" if t.role == "model" else "user", "content": t.text}
         )
