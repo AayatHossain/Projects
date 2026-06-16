@@ -16,7 +16,7 @@ def _resolve_credentials_path() -> str:
     return path
 
 
-def inibaset_fire() -> None:
+def init_firebase() -> None:
     global _initialized
     if _initialized or firebase_admin._apps:
         _initialized = True
