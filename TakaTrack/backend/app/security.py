@@ -1,4 +1,3 @@
-"""Password hashing (bcrypt) and JWT token helpers."""
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
@@ -38,5 +37,4 @@ def create_token(uid: str, email: str) -> str:
 
 
 def decode_token(token: str) -> dict:
-    """Raises jwt.PyJWTError on invalid/expired tokens."""
     return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])

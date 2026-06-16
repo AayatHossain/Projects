@@ -1,4 +1,3 @@
-"""Request/response models for the TakaTrack API."""
 from pydantic import BaseModel, EmailStr, Field
 
 

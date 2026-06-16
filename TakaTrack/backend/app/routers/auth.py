@@ -1,13 +1,3 @@
-"""Authentication: register, login, and current-user lookup.
-
-Users are stored in the Realtime Database:
-
-    /users/{uid}              -> { name, email, password_hash, created_at }
-    /emailIndex/{emailKey}    -> uid        (lookup table for login)
-
-``emailKey`` is the lowercased email with '.' replaced by ',', because '.' is
-not allowed in Realtime Database keys. This avoids needing a query index.
-"""
 import uuid
 from datetime import datetime, timezone
 

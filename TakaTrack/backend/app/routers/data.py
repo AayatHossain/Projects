@@ -1,16 +1,3 @@
-"""User financial data: budget envelopes, expenses, goals, and the arcade.
-
-Everything is stored under the authenticated user's uid in the Realtime
-Database:
-
-    /data/{uid}/budget                 = { income, categories: [ {key,label,icon,alloc} ] }
-    /data/{uid}/expenses/{expId}       = { catKey, catLabel, note, amt, ts }
-    /data/{uid}/goals/{goalId}         = { name, icon, target, saved, perDay }
-    /data/{uid}/arcade                 = { points, done: { activityId: true } }
-
-Per-category "spent" is derived from expenses (single source of truth), so
-deleting an expense automatically frees its envelope.
-"""
 import time
 import uuid
 
@@ -56,9 +43,6 @@ def _seed_if_empty(uid: str) -> None:
 
 
 def _ensure_default_categories(uid: str, budget: dict) -> list[dict]:
-    """Add any default categories missing from an existing user's budget
-    (e.g. 'others' added after their account was created). Keeps existing
-    order and the user's own allocations; appends missing ones."""
     cats = budget.get("categories") or []
     existing = {c.get("key") for c in cats}
     missing = [dict(dc) for dc in DEFAULT_CATEGORIES if dc["key"] not in existing]
@@ -119,7 +103,6 @@ class CompleteIn(BaseModel):
 
 @router.get("/overview")
 def overview(user: UserOut = Depends(current_user)):
-    """Everything the app needs in one call (used by every tab)."""
     _seed_if_empty(user.uid)
     root = ref(_root(user.uid)).get() or {}
     budget = root.get("budget", {}) or {}
@@ -147,8 +130,6 @@ def set_budget(body: BudgetIn, user: UserOut = Depends(current_user)):
 
 @router.post("/reset")
 def reset_budget(user: UserOut = Depends(current_user)):
-    """Reset all category allocations to 0 and clear all expenses (income kept).
-    Also re-seeds the default category set, so this corrects any stale category list."""
     root = _root(user.uid)
     budget = ref(f"{root}/budget").get() or {}
     income = budget.get("income", DEFAULT_INCOME)
@@ -194,7 +175,6 @@ def add_goal(body: GoalIn, user: UserOut = Depends(current_user)):
 
 @router.put("/goals/{gid}")
 def update_goal(gid: str, body: GoalUpdate, user: UserOut = Depends(current_user)):
-    """Edit a goal's deposited amount, target, perDay, name, or icon."""
     path = f"{_root(user.uid)}/goals/{gid}"
     node = ref(path).get()
     if not node:
@@ -227,7 +207,6 @@ def delete_goal(gid: str, user: UserOut = Depends(current_user)):
 
 @router.post("/arcade/complete")
 def complete_activity(body: CompleteIn, user: UserOut = Depends(current_user)):
-    """Award points the first time an activity (quiz/scenario) is completed."""
     arcade = ref(f"{_root(user.uid)}/arcade").get() or {"points": 0, "done": {}}
     done = arcade.get("done") or {}
     if not done.get(body.id):

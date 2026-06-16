@@ -1,9 +1,3 @@
-"""TakaTrack backend configuration.
-
-Values can be overridden via environment variables or a .env file
-(see .env.example). Secrets (JWT secret, service-account path) live in .env,
-which is gitignored — never commit them.
-"""
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 

@@ -1,9 +1,3 @@
-"""TakaTrack backend.
-
-FastAPI service backed by Firebase Realtime Database. Phase 1 ships
-authentication (register / login / me); budgets, expenses, goals, and the
-literacy arcade come next.
-"""
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI

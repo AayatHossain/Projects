@@ -1,12 +1,3 @@
-"""Firebase Realtime Database access via the Admin SDK.
-
-The Admin SDK authenticates with the service-account key, so it has full
-read/write access and bypasses database security rules — the React Native app
-never touches Firebase directly, it only calls this FastAPI backend.
-
-Only the Realtime Database is used (no Firebase Storage), which keeps the
-project on the free Spark plan.
-"""
 import os
 
 import firebase_admin
@@ -25,8 +16,7 @@ def _resolve_credentials_path() -> str:
     return path
 
 
-def init_firebase() -> None:
-    """Initialise the Admin SDK once (idempotent)."""
+def inibaset_fire() -> None:
     global _initialized
     if _initialized or firebase_admin._apps:
         _initialized = True
@@ -46,6 +36,5 @@ def init_firebase() -> None:
 
 
 def ref(path: str):
-    """Return a Realtime Database reference at ``path`` (e.g. 'users/<uid>')."""
     init_firebase()
     return db.reference(path)

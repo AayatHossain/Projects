@@ -1,10 +1,3 @@
-"""AI proxy.
-
-The React Native app never holds an LLM key. It sends a system instruction plus
-the conversation here (authenticated with the user's JWT), and this endpoint calls
-OpenAI using a server-side key (OPENAI_API_KEY env var). Keeping the key on the
-server means it's never extractable from the app bundle.
-"""
 import requests
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -32,7 +25,6 @@ class ChatIn(BaseModel):
 
 @router.post("/chat")
 def chat(body: ChatIn, user: UserOut = Depends(current_user)):
-    """Forward a prompt to OpenAI and return the reply text."""
     if not settings.openai_api_key:
         raise HTTPException(status_code=503, detail="AI is not configured on the server.")
 
