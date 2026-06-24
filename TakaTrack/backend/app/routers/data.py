@@ -1,3 +1,5 @@
+import hashlib
+import re
 import time
 import uuid
 
@@ -6,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from ..firebase import ref
 from ..schemas import UserOut
+from ..sms import parse_sms
 from .auth import current_user
 
 router = APIRouter(prefix="/data", tags=["data"])
@@ -101,6 +104,38 @@ class CompleteIn(BaseModel):
     points: int = Field(ge=0, le=1000)
 
 
+class SmsMessage(BaseModel):
+    sender: str = ""
+    body: str
+    ts: int | None = None
+
+
+class IngestIn(BaseModel):
+    messages: list[SmsMessage]
+
+
+class CategorizeIn(BaseModel):
+    catKey: str
+    catLabel: str
+    note: str = ""
+
+
+class SaveGoalIn(BaseModel):
+    goalId: str
+
+
+def _safe_key(s: str) -> str:
+    return re.sub(r"[.#$\[\]/]", "_", s)[:120]
+
+
+def _dedup_key(sender: str, body: str, parsed: dict) -> str:
+    trx = parsed.get("trxId")
+    if trx:
+        return _safe_key(f"{parsed.get('provider', 'x')}_{trx}")
+    base = f"{sender}|{parsed.get('amount')}|{body}"
+    return "h_" + hashlib.sha1(base.encode("utf-8")).hexdigest()[:24]
+
+
 @router.get("/overview")
 def overview(user: UserOut = Depends(current_user)):
     _seed_if_empty(user.uid)
@@ -111,12 +146,15 @@ def overview(user: UserOut = Depends(current_user)):
     expenses.sort(key=lambda e: e.get("ts", 0), reverse=True)
     goals = _list_with_ids(root.get("goals"))
     arcade = root.get("arcade", {"points": 0, "done": {}})
+    pending = _list_with_ids(root.get("pending"))
+    pending.sort(key=lambda e: e.get("ts", 0), reverse=True)
     return {
         "income": budget.get("income", DEFAULT_INCOME),
         "categories": categories,
         "expenses": expenses,
         "goals": goals,
         "arcade": arcade,
+        "pending": pending,
     }
 
 
@@ -214,3 +252,80 @@ def complete_activity(body: CompleteIn, user: UserOut = Depends(current_user)):
         arcade = {"points": arcade.get("points", 0) + body.points, "done": done}
         ref(f"{_root(user.uid)}/arcade").set(arcade)
     return arcade
+
+
+@router.post("/sms/ingest")
+def ingest_sms(body: IngestIn, user: UserOut = Depends(current_user)):
+    root = _root(user.uid)
+    seen = ref(f"{root}/seenTrx").get() or {}
+    added = []
+    for m in body.messages:
+        parsed = parse_sms(m.sender, m.body)
+        if not parsed or not parsed.get("amount"):
+            continue
+        key = _dedup_key(m.sender, m.body, parsed)
+        if key in seen:
+            continue
+        seen[key] = True
+        ts = m.ts or int(time.time() * 1000)
+        pid = uuid.uuid4().hex
+        entry = {
+            "trxId": parsed.get("trxId") or "",
+            "provider": parsed.get("provider") or "unknown",
+            "kind": parsed.get("kind") or "transaction",
+            "direction": parsed.get("direction") or "out",
+            "amount": float(parsed.get("amount") or 0),
+            "fee": float(parsed.get("fee") or 0),
+            "counterparty": parsed.get("counterparty") or "",
+            "suggestedCatKey": parsed.get("suggestedCatKey") or "others",
+            "suggestedCatLabel": parsed.get("suggestedCatLabel") or "Others",
+            "raw": parsed.get("raw") or m.body,
+            "ts": ts,
+        }
+        if parsed.get("balance") is not None:
+            entry["balance"] = float(parsed["balance"])
+        ref(f"{root}/pending/{pid}").set(entry)
+        ref(f"{root}/seenTrx/{key}").set(ts)
+        added.append({"id": pid, **entry})
+    added.sort(key=lambda e: e["ts"], reverse=True)
+    return {"added": added, "count": len(added)}
+
+
+@router.post("/pending/{pid}/categorize")
+def categorize_pending(pid: str, body: CategorizeIn, user: UserOut = Depends(current_user)):
+    root = _root(user.uid)
+    node = ref(f"{root}/pending/{pid}").get()
+    if not node:
+        raise HTTPException(status_code=404, detail="Pending transaction not found.")
+    eid = uuid.uuid4().hex
+    entry = {
+        "catKey": body.catKey,
+        "catLabel": body.catLabel,
+        "note": (body.note or node.get("counterparty") or "").strip(),
+        "amt": float(node.get("amount") or 0),
+        "ts": int(node.get("ts") or time.time() * 1000),
+    }
+    ref(f"{root}/expenses/{eid}").set(entry)
+    ref(f"{root}/pending/{pid}").delete()
+    return {"expense": {"id": eid, **entry}}
+
+
+@router.post("/pending/{pid}/save-goal")
+def save_pending_to_goal(pid: str, body: SaveGoalIn, user: UserOut = Depends(current_user)):
+    root = _root(user.uid)
+    node = ref(f"{root}/pending/{pid}").get()
+    if not node:
+        raise HTTPException(status_code=404, detail="Pending transaction not found.")
+    goal = ref(f"{root}/goals/{body.goalId}").get()
+    if not goal:
+        raise HTTPException(status_code=404, detail="Goal not found.")
+    saved = min(goal["target"], goal.get("saved", 0) + float(node.get("amount") or 0))
+    ref(f"{root}/goals/{body.goalId}/saved").set(saved)
+    ref(f"{root}/pending/{pid}").delete()
+    return {"goal": {"id": body.goalId, **goal, "saved": saved}}
+
+
+@router.delete("/pending/{pid}")
+def dismiss_pending(pid: str, user: UserOut = Depends(current_user)):
+    ref(f"{_root(user.uid)}/pending/{pid}").delete()
+    return {"ok": True}
