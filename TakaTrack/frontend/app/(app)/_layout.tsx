@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
-import { DataProvider } from '../../src/data';
+import { DataProvider, useData } from '../../src/data';
 import { colors } from '../../src/theme';
 
 function tabIcon(active: keyof typeof Ionicons.glyphMap, inactive: keyof typeof Ionicons.glyphMap) {
@@ -13,6 +13,14 @@ function tabIcon(active: keyof typeof Ionicons.glyphMap, inactive: keyof typeof 
 export default function AppLayout() {
   return (
     <DataProvider>
+      <TabsNav />
+    </DataProvider>
+  );
+}
+
+function TabsNav() {
+  const { pending } = useData();
+  return (
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -31,6 +39,15 @@ export default function AppLayout() {
         <Tabs.Screen
           name="index"
           options={{ title: 'Home', tabBarIcon: tabIcon('home', 'home-outline') }}
+        />
+        <Tabs.Screen
+          name="notifications"
+          options={{
+            title: 'Inbox',
+            tabBarIcon: tabIcon('notifications', 'notifications-outline'),
+            tabBarBadge: pending.length || undefined,
+            tabBarBadgeStyle: { backgroundColor: colors.red, fontSize: 10 },
+          }}
         />
         <Tabs.Screen
           name="expenses"
@@ -56,6 +73,5 @@ export default function AppLayout() {
         <Tabs.Screen name="insights" options={{ href: null }} />
         <Tabs.Screen name="quiz" options={{ href: null }} />
       </Tabs>
-    </DataProvider>
   );
 }

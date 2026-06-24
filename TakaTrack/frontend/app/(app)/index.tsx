@@ -25,7 +25,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { language, toggle, t, catLabel, goalLabel, fmtN, formatDate } = useLang();
   const { token, user, logout } = useAuth();
-  const { loading, income, categories, expenses, goals, arcade, spentForCategory, totalSpent, refresh } =
+  const { loading, income, categories, expenses, goals, arcade, pending, spentForCategory, totalSpent, refresh } =
     useData();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -113,6 +113,25 @@ export default function HomeScreen() {
         style={styles.bgWrap}
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+        {pending.length > 0 && (
+          <FadeInUp delay={0}>
+            <Pressable onPress={() => router.push('/notifications')}>
+              <Card style={styles.pendingBar}>
+                <View style={styles.pendingIcon}>
+                  <Text style={styles.pendingIconText}>🔔</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.pendingTitle}>{t('pending.barTitle', { n: fmtN(pending.length) })}</Text>
+                  <Text style={styles.pendingSub} numberOfLines={1}>
+                    {pending[0].direction === 'in' ? '↓ ' : '↑ '}৳{fmtN(pending[0].amount)}
+                    {pending[0].counterparty ? ` · ${pending[0].counterparty}` : ''}
+                  </Text>
+                </View>
+                <Text style={styles.pendingArrow}>›</Text>
+              </Card>
+            </Pressable>
+          </FadeInUp>
+        )}
         <FadeInUp delay={0}>
           <Card style={styles.hero}>
             <View style={styles.row}>
@@ -312,6 +331,12 @@ const styles = StyleSheet.create({
   langTextOn: { color: '#fff' },
   logout: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#000', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 8 },
   logoutText: { color: colors.red, fontWeight: '700', fontSize: 12 },
+  pendingBar: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff7ed', borderColor: '#fed7aa', borderLeftWidth: 5, borderLeftColor: colors.amber },
+  pendingIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#ffedd5', alignItems: 'center', justifyContent: 'center' },
+  pendingIconText: { fontSize: 18 },
+  pendingTitle: { fontSize: 13.5, fontWeight: '800', color: '#9a3412' },
+  pendingSub: { fontSize: 12, color: '#b45309', fontWeight: '600', marginTop: 2 },
+  pendingArrow: { fontSize: 22, fontWeight: '800', color: '#c2410c' },
   hero: { backgroundColor: colors.teal, borderWidth: 0 },
   heroLabel: { fontSize: 12, color: 'rgba(255,255,255,0.9)' },
   heroBig: { fontSize: 25, fontWeight: '800', color: '#fff', marginTop: 2 },

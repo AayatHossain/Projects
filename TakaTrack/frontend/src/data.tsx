@@ -1,7 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { AppState } from 'react-native';
 
-import { api, Arcade, Category, Expense, Goal, Overview } from './api';
+import { api, Arcade, Category, Expense, Goal, Overview, Pending } from './api';
 import { useAuth } from './auth';
+import { notifyTransaction, setupNotifications } from './notify';
+import { RawSms, sampleSms, scanSms } from './sms';
 
 type DataState = {
   loading: boolean;
@@ -11,6 +14,7 @@ type DataState = {
   expenses: Expense[];
   goals: Goal[];
   arcade: Arcade;
+  pending: Pending[];
   refresh: () => Promise<void>;
   spentForCategory: (key: string) => number;
   totalSpent: () => number;
@@ -27,6 +31,11 @@ type DataState = {
   deposit: (id: string, amount: number) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
   completeActivity: (id: string, points: number) => Promise<void>;
+  scanForSms: () => Promise<void>;
+  simulateSms: () => Promise<void>;
+  categorizePending: (id: string, catKey: string, catLabel: string, note?: string) => Promise<void>;
+  savePendingToGoal: (id: string, goalId: string) => Promise<void>;
+  dismissPending: (id: string) => Promise<void>;
 };
 
 const DataContext = createContext<DataState | undefined>(undefined);
@@ -42,6 +51,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [arcade, setArcade] = useState<Arcade>(EMPTY_ARCADE);
+  const [pending, setPending] = useState<Pending[]>([]);
 
   function apply(o: Overview) {
     setIncomeState(o.income);
@@ -49,6 +59,34 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setExpenses(o.expenses ?? []);
     setGoals(o.goals ?? []);
     setArcade(o.arcade ?? EMPTY_ARCADE);
+    setPending(o.pending ?? []);
+  }
+
+  async function ingest(messages: RawSms[]) {
+    if (!token || messages.length === 0) return;
+    try {
+      const { added } = await api.data.ingestSms(token, messages);
+      if (added.length === 0) return;
+      setPending((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        const fresh = added.filter((a) => !seen.has(a.id));
+        return [...fresh, ...prev].sort((a, b) => b.ts - a.ts);
+      });
+      const top = added[0];
+      await notifyTransaction(
+        top.direction === 'in' ? 'Money received' : 'New transaction',
+        `৳${Math.round(top.amount).toLocaleString('en-IN')}${top.counterparty ? ` · ${top.counterparty}` : ''} — tap to categorize`,
+      );
+    } catch {}
+  }
+
+  async function scanForSms() {
+    const messages = await scanSms();
+    await ingest(messages);
+  }
+
+  async function simulateSms() {
+    await ingest(sampleSms());
   }
 
   async function refresh() {
@@ -66,6 +104,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setLoading(true);
     refresh();
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+    setupNotifications();
+    scanForSms();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') scanForSms();
+    });
+    return () => sub.remove();
   }, [token]);
 
   function isThisMonth(ts: number) {
@@ -90,9 +138,27 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     expenses,
     goals,
     arcade,
+    pending,
     refresh,
     spentForCategory,
     totalSpent,
+    scanForSms,
+    simulateSms,
+
+    categorizePending: async (id, catKey, catLabel, note = '') => {
+      const { expense } = await api.data.categorizePending(token!, id, { catKey, catLabel, note });
+      setExpenses((prev) => [expense, ...prev]);
+      setPending((prev) => prev.filter((p) => p.id !== id));
+    },
+    savePendingToGoal: async (id, goalId) => {
+      const { goal } = await api.data.savePendingToGoal(token!, id, goalId);
+      setGoals((prev) => prev.map((g) => (g.id === goalId ? goal : g)));
+      setPending((prev) => prev.filter((p) => p.id !== id));
+    },
+    dismissPending: async (id) => {
+      await api.data.dismissPending(token!, id);
+      setPending((prev) => prev.filter((p) => p.id !== id));
+    },
 
     logExpense: async (e) => {
       const created = await api.data.addExpense(token!, e);

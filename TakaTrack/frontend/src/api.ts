@@ -21,12 +21,28 @@ export type Goal = {
   perDay: number;
 };
 export type Arcade = { points: number; done: Record<string, boolean> };
+export type Pending = {
+  id: string;
+  trxId: string;
+  provider: string;
+  kind: string;
+  direction: 'in' | 'out';
+  amount: number;
+  fee: number;
+  counterparty: string;
+  balance?: number;
+  suggestedCatKey: string;
+  suggestedCatLabel: string;
+  raw: string;
+  ts: number;
+};
 export type Overview = {
   income: number;
   categories: Category[];
   expenses: Expense[];
   goals: Goal[];
   arcade: Arcade;
+  pending: Pending[];
 };
 
 export class ApiError extends Error {}
@@ -121,5 +137,24 @@ export const api = {
 
     completeActivity: (token: string, id: string, points: number) =>
       request<Arcade>('/data/arcade/complete', { method: 'POST', token, body: { id, points } }),
+
+    ingestSms: (token: string, messages: { sender: string; body: string; ts: number }[]) =>
+      request<{ added: Pending[]; count: number }>('/data/sms/ingest', {
+        method: 'POST',
+        token,
+        body: { messages },
+      }),
+
+    categorizePending: (
+      token: string,
+      id: string,
+      body: { catKey: string; catLabel: string; note?: string },
+    ) => request<{ expense: Expense }>(`/data/pending/${id}/categorize`, { method: 'POST', token, body }),
+
+    savePendingToGoal: (token: string, id: string, goalId: string) =>
+      request<{ goal: Goal }>(`/data/pending/${id}/save-goal`, { method: 'POST', token, body: { goalId } }),
+
+    dismissPending: (token: string, id: string) =>
+      request<{ ok: boolean }>(`/data/pending/${id}`, { method: 'DELETE', token }),
   },
 };
