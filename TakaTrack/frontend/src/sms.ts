@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PermissionsAndroid, Platform } from 'react-native';
 
 const WATERMARK_KEY = 'takatrack_sms_watermark';
-const LOOKBACK_MS = 1000 * 60 * 60 * 24 * 30;
 
 export type RawSms = { sender: string; body: string; ts: number };
 
@@ -84,7 +83,11 @@ export async function scanSms(): Promise<RawSms[]> {
   const granted = await requestSmsPermission();
   if (!granted) return [];
   const wmRaw = await AsyncStorage.getItem(WATERMARK_KEY);
-  const watermark = wmRaw ? Number(wmRaw) : Date.now() - LOOKBACK_MS;
+  if (wmRaw === null) {
+    await AsyncStorage.setItem(WATERMARK_KEY, String(Date.now()));
+    return [];
+  }
+  const watermark = Number(wmRaw);
   const all = await listSms(watermark + 1);
   const financial = all.filter((m) => looksFinancial(m.sender, m.body));
   const newest = all.reduce((mx, m) => Math.max(mx, m.ts), watermark);

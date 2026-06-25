@@ -129,7 +129,7 @@ function PendingCard({ item }: { item: Pending }) {
 
 export default function NotificationsScreen() {
   const { t } = useLang();
-  const { pending, scanForSms, simulateSms } = useData();
+  const { pending, scanForSms, dismissPending } = useData();
   const [busy, setBusy] = useState(false);
 
   async function scan() {
@@ -141,6 +141,27 @@ export default function NotificationsScreen() {
     }
   }
 
+  function dismissAll() {
+    if (pending.length === 0) return;
+    Alert.alert(t('notif.dismissAllTitle'), t('notif.dismissAllMsg'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('notif.dismiss'),
+        style: 'destructive',
+        onPress: async () => {
+          setBusy(true);
+          try {
+            await Promise.all(pending.map((p) => dismissPending(p.id)));
+          } catch (e) {
+            Alert.alert(t('common.couldNotSave'), e instanceof Error ? e.message : t('common.tryAgain'));
+          } finally {
+            setBusy(false);
+          }
+        },
+      },
+    ]);
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -150,8 +171,11 @@ export default function NotificationsScreen() {
           <Pressable style={[styles.toolBtn, busy && { opacity: 0.5 }]} onPress={scan} disabled={busy}>
             <Text style={styles.toolText}>{t('notif.scanNow')}</Text>
           </Pressable>
-          <Pressable style={[styles.toolBtn, styles.simBtn]} onPress={simulateSms}>
-            <Text style={[styles.toolText, styles.simText]}>{t('notif.simulate')}</Text>
+          <Pressable
+            style={[styles.toolBtn, styles.clearBtn, (busy || pending.length === 0) && { opacity: 0.5 }]}
+            onPress={dismissAll}
+            disabled={busy || pending.length === 0}>
+            <Text style={[styles.toolText, styles.clearText]}>{t('notif.dismissAll')}</Text>
           </Pressable>
         </View>
 
@@ -174,8 +198,8 @@ const styles = StyleSheet.create({
   toolbar: { flexDirection: 'row', gap: 8, marginBottom: 14 },
   toolBtn: { flex: 1, borderWidth: 1.5, borderColor: colors.teal, borderRadius: 12, paddingVertical: 11, alignItems: 'center', backgroundColor: '#fff' },
   toolText: { fontSize: 12.5, fontWeight: '800', color: colors.teal },
-  simBtn: { backgroundColor: colors.violetTint, borderColor: colors.violet },
-  simText: { color: colors.violet },
+  clearBtn: { backgroundColor: colors.redTint, borderColor: colors.red },
+  clearText: { color: colors.red },
   headRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dirBadge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
   inBadge: { backgroundColor: colors.greenTint },
