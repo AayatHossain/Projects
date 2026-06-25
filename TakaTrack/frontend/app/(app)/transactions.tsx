@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,8 +9,6 @@ import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
 import { Card } from '../../src/ui';
-
-type Filter = 'all' | 'in' | 'out' | 'saved';
 
 const PROVIDERS: Record<string, string> = {
   bkash: 'bKash',
@@ -30,7 +28,6 @@ export default function TransactionsScreen() {
   const router = useRouter();
   const { t, fmtN, formatDate } = useLang();
   const { transactions, refresh } = useData();
-  const [filter, setFilter] = useState<Filter>('all');
 
   useFocusEffect(
     useCallback(() => {
@@ -67,27 +64,13 @@ export default function TransactionsScreen() {
     return formatDate(d);
   }
 
-  const filtered = transactions.filter((tx) => {
-    if (filter === 'all') return true;
-    if (filter === 'in') return tx.type === 'income';
-    if (filter === 'saved') return tx.type === 'saving';
-    return tx.type === 'expense' || tx.type === 'sent';
-  });
-
   const groups: { label: string; items: Transaction[] }[] = [];
-  for (const tx of filtered) {
+  for (const tx of transactions) {
     const label = dayLabel(tx.ts);
     const last = groups[groups.length - 1];
     if (last && last.label === label) last.items.push(tx);
     else groups.push({ label, items: [tx] });
   }
-
-  const FILTERS: { key: Filter; label: string }[] = [
-    { key: 'all', label: t('txn.all') },
-    { key: 'in', label: t('txn.in') },
-    { key: 'out', label: t('txn.out') },
-    { key: 'saved', label: t('txn.saved') },
-  ];
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -99,19 +82,8 @@ export default function TransactionsScreen() {
         <View style={styles.backBtn} />
       </View>
 
-      <View style={styles.filterRow}>
-        {FILTERS.map((f) => {
-          const on = filter === f.key;
-          return (
-            <Pressable key={f.key} onPress={() => setFilter(f.key)} style={[styles.chip, on && styles.chipOn]}>
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>{f.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
       <ScrollView contentContainerStyle={styles.scroll}>
-        {filtered.length === 0 ? (
+        {transactions.length === 0 ? (
           <Card>
             <Text style={styles.empty}>{t('txn.empty')}</Text>
           </Card>
@@ -166,12 +138,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 17, fontWeight: '800', color: colors.ink },
-  filterRow: { flexDirection: 'row', gap: 7, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 4 },
-  chip: { borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7 },
-  chipOn: { backgroundColor: colors.teal, borderColor: colors.teal },
-  chipText: { fontSize: 12.5, fontWeight: '700', color: colors.ink2 },
-  chipTextOn: { color: '#fff', fontWeight: '800' },
-  scroll: { padding: 14, paddingBottom: 28 },
+  scroll: { padding: 14, paddingTop: 16, paddingBottom: 28 },
   group: { marginBottom: 6 },
   dayLabel: { fontSize: 12.5, fontWeight: '800', color: colors.muted, marginBottom: 7, marginLeft: 4 },
   dayCard: { padding: 4, paddingHorizontal: 12 },
