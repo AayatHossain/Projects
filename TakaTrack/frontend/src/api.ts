@@ -45,6 +45,41 @@ export type Overview = {
   pending: Pending[];
 };
 
+export type ShopOffer = {
+  source: string;
+  title: string;
+  price: number;
+  priceText: string;
+  link: string;
+  thumbnail: string;
+  rating?: number | null;
+  reviews?: number | null;
+  delivery: string;
+  inStock: boolean;
+};
+export type ShopAlternative = {
+  name: string;
+  price: number;
+  priceText: string;
+  source: string;
+  link: string;
+  thumbnail: string;
+  savings: number;
+  savingsPct: number;
+};
+export type Advice = {
+  product: string;
+  queryPrice: number | null;
+  currency: string;
+  region: string;
+  best: ShopOffer | null;
+  offers: ShopOffer[];
+  verdict: 'buy' | 'wait' | 'alternative';
+  label: string;
+  reason: string;
+  alternatives: ShopAlternative[];
+};
+
 export class ApiError extends Error {}
 
 async function request<T>(
@@ -156,5 +191,12 @@ export const api = {
 
     dismissPending: (token: string, id: string) =>
       request<{ ok: boolean }>(`/data/pending/${id}`, { method: 'DELETE', token }),
+  },
+
+  shopping: {
+    advise: (
+      token: string,
+      body: { product: string; price?: number; budget?: number; link?: string; context?: string },
+    ) => request<Advice>('/shopping/advise', { method: 'POST', token, body }),
   },
 };

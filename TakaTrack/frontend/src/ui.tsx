@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Animated, Easing, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 import { colors, radius, shadow } from './theme';
@@ -12,7 +12,7 @@ export const fmt = (n: number) =>
 export const ringColor = (pct: number) =>
   pct < 0.75 ? colors.green : pct < 1 ? colors.amber : colors.red;
 
-export function Card({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
+export function Card({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[styles.card, style]}>{children}</View>;
 }
 

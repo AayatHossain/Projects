@@ -195,6 +195,21 @@ export default function HomeScreen() {
         </Card>
         </FadeInUp>
 
+        <FadeInUp delay={135}>
+          <Pressable onPress={() => router.push('/shop')}>
+            <Card style={styles.advisor}>
+              <View style={styles.advisorIcon}>
+                <Text style={{ fontSize: 20 }}>🛒</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.advisorTitle}>{t('advisor.homeCard')}</Text>
+                <Text style={styles.advisorSub}>{t('advisor.homeCardSub')}</Text>
+              </View>
+              <Text style={styles.advisorArrow}>›</Text>
+            </Card>
+          </Pressable>
+        </FadeInUp>
+
         <FadeInUp delay={180}>
         <Card>
           <SectionTitle>{t('home.expenseProgress')}</SectionTitle>
@@ -337,6 +352,11 @@ const styles = StyleSheet.create({
   pendingTitle: { fontSize: 13.5, fontWeight: '800', color: '#9a3412' },
   pendingSub: { fontSize: 12, color: '#b45309', fontWeight: '600', marginTop: 2 },
   pendingArrow: { fontSize: 22, fontWeight: '800', color: '#c2410c' },
+  advisor: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.tealTint, borderColor: colors.tealTint2, borderLeftWidth: 5, borderLeftColor: colors.teal },
+  advisorIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.tealTint2 },
+  advisorTitle: { fontSize: 14.5, fontWeight: '800', color: colors.tealDeep },
+  advisorSub: { fontSize: 12, color: colors.tealDark, fontWeight: '600', marginTop: 2 },
+  advisorArrow: { fontSize: 24, fontWeight: '800', color: colors.teal },
   hero: { backgroundColor: colors.teal, borderWidth: 0 },
   heroLabel: { fontSize: 12, color: 'rgba(255,255,255,0.9)' },
   heroBig: { fontSize: 25, fontWeight: '800', color: '#fff', marginTop: 2 },
