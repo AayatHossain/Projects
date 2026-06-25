@@ -1,4 +1,5 @@
 import json
+import math
 import re
 
 import requests
@@ -13,22 +14,168 @@ router = APIRouter(prefix="/shopping", tags=["shopping"])
 
 SERPAPI_URL = "https://serpapi.com/search.json"
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
+DARAZ_URL = "https://www.daraz.com.bd/catalog/"
+DARAZ_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "Accept": "application/json, text/plain, */*",
+}
 
 DEFAULT_LABELS = {"buy": "Buy it", "wait": "Wait", "alternative": "Consider an alternative"}
 CURRENCY_RE = re.compile(r"^[^\d]+")
+DIGITS_RE = re.compile(r"\d")
+
+STOPWORDS = {"for", "the", "with", "and", "in", "of", "a", "to", "new", "original", "best", "buy"}
+ACCESSORY_TERMS = (
+    "case", "cover", "protector", "tempered", "glass", "charger", "cable",
+    "adapter", "holder", "stand", "skin", "guard", "pouch", "strap", "lens",
+    "earphone", "headphone", "power bank", "sticker", "film", "ring", "mount",
+    "otg", "card reader", "reader", "kit", "cleaning",
+)
+GROCERY_TERMS = {
+    "rice", "oil", "egg", "atta", "flour", "sugar", "salt", "dal", "lentil",
+    "onion", "potato", "garlic", "ginger", "milk", "tea", "coffee", "biscuit",
+    "chips", "soap", "shampoo", "detergent", "toothpaste", "spice", "masala",
+    "ghee", "butter", "honey", "noodles", "pasta", "sauce", "snack", "water",
+    "juice", "powder", "diaper", "tissue", "sanitizer", "grocery", "fish",
+    "meat", "chicken", "vegetable", "fruit", "banana", "mango", "bread", "cereal",
+}
+ELECTRONICS_TERMS = {
+    "phone", "iphone", "samsung", "laptop", "tv", "television", "tablet", "ipad",
+    "watch", "earbuds", "monitor", "mouse", "keyboard", "router", "camera",
+    "console", "playstation", "xbox", "powerbank", "speaker", "ssd", "ram",
+    "processor", "gpu", "macbook", "redmi", "xiaomi", "oppo", "vivo", "realme",
+    "nokia", "motorola", "pixel", "smartphone",
+}
 
 
-class AdviseIn(BaseModel):
-    product: str = Field(min_length=1, max_length=120)
-    price: float | None = None
-    budget: float | None = None
-    link: str | None = None
-    context: str = ""
-    region: str | None = None
-    maxAlternatives: int = Field(default=2, ge=0, le=3)
+def _tokens(q: str) -> list[str]:
+    return [t for t in re.split(r"[^a-z0-9]+", (q or "").lower()) if len(t) >= 2 and t not in STOPWORDS]
 
 
-def _search_offers(query: str, region: str, limit: int = 8) -> list[dict]:
+def _category(query: str) -> str:
+    toks = set(_tokens(query))
+    if toks & GROCERY_TERMS:
+        return "grocery"
+    if toks & ELECTRONICS_TERMS:
+        return "electronics"
+    return "general"
+
+
+def _relevant(name: str, toks: list[str]) -> bool:
+    if not toks:
+        return True
+    n = (name or "").lower()
+    hits = sum(1 for t in toks if t in n)
+    return hits >= math.ceil(len(toks) * 0.6)
+
+
+def _is_accessory(name: str, query: str) -> bool:
+    n = (name or "").lower()
+    q = (query or "").lower()
+    return any(term in n and term not in q for term in ACCESSORY_TERMS)
+
+
+def _to_int(v) -> int | None:
+    try:
+        return int(str(v).replace(",", "").strip())
+    except (ValueError, TypeError):
+        return None
+
+
+def _num(v) -> float | None:
+    try:
+        return float(str(v).replace(",", "").strip())
+    except (ValueError, TypeError):
+        return None
+
+
+def _drop_price_outliers(offers: list[dict]) -> list[dict]:
+    if len(offers) < 4:
+        return offers
+    prices = sorted(o["price"] for o in offers)
+    median = prices[len(prices) // 2]
+    return [o for o in offers if o["price"] >= median * 0.2]
+
+
+def _finalize(offers: list[dict], query: str, limit: int) -> list[dict]:
+    toks = _tokens(query)
+    category = _category(query)
+    offers = [o for o in offers if _relevant(o["title"], toks)]
+    if category == "electronics":
+        offers = [o for o in offers if not _is_accessory(o["title"], query)]
+        offers = _drop_price_outliers(offers)
+    offers.sort(key=lambda o: ((0 if o["inStock"] else 1), o["price"]))
+    return offers[:limit]
+
+
+def _offer(source, title, price, price_text, link, thumb, rating, reviews, delivery, in_stock, original):
+    discount_pct = 0
+    if original and original > price:
+        discount_pct = round((original - price) / original * 100)
+    return {
+        "source": source or "Unknown",
+        "title": title,
+        "price": float(price),
+        "priceText": price_text,
+        "link": link or "",
+        "thumbnail": thumb or "",
+        "rating": rating,
+        "reviews": reviews,
+        "delivery": delivery or "",
+        "inStock": bool(in_stock),
+        "original": original,
+        "discountPct": discount_pct,
+    }
+
+
+def _search_daraz(query: str, limit: int = 12) -> list[dict]:
+    try:
+        res = requests.get(
+            DARAZ_URL,
+            params={"ajax": "true", "q": query},
+            headers=DARAZ_HEADERS,
+            timeout=30,
+        )
+    except requests.RequestException:
+        return []
+    if not res.ok:
+        return []
+    try:
+        data = res.json()
+    except ValueError:
+        return []
+    offers = []
+    for it in (data.get("mods") or {}).get("listItems") or []:
+        price = _to_int(it.get("price"))
+        if not price:
+            continue
+        url = it.get("itemUrl") or ""
+        if url.startswith("//"):
+            url = "https:" + url
+        try:
+            rating = float(it.get("ratingScore")) if it.get("ratingScore") else None
+        except (ValueError, TypeError):
+            rating = None
+        original = _to_int(re.sub(r"[^\d]", "", it.get("originalPriceShow") or "")) or None
+        offers.append(
+            _offer(
+                it.get("sellerName") or "Daraz",
+                it.get("name") or query,
+                price,
+                (it.get("priceShow") or f"৳{price}").replace("৳ ", "৳"),
+                url,
+                it.get("image"),
+                rating,
+                _to_int(it.get("review")),
+                it.get("location"),
+                it.get("inStock", True),
+                original,
+            )
+        )
+    return _finalize(offers, query, limit)
+
+
+def _search_serpapi(query: str, region: str, limit: int = 12) -> list[dict]:
     if not settings.serpapi_key:
         return []
     params = {
@@ -50,36 +197,40 @@ def _search_offers(query: str, region: str, limit: int = 8) -> list[dict]:
         return []
     offers = []
     for r in data.get("shopping_results") or []:
-        price = r.get("extracted_price")
+        price = _num(r.get("extracted_price"))
         if not price:
             continue
         price_text = (r.get("price") or "").lower()
         if any(term in price_text for term in ("/mo", "/month", "month", "/wk", "/week", "/yr")):
             continue
         offers.append(
-            {
-                "source": r.get("source") or "Unknown",
-                "title": r.get("title") or query,
-                "price": float(price),
-                "priceText": r.get("price") or "",
-                "link": r.get("product_link") or r.get("link") or "",
-                "thumbnail": r.get("thumbnail") or "",
-                "rating": r.get("rating"),
-                "reviews": r.get("reviews"),
-                "delivery": r.get("delivery") or "",
-                "inStock": True,
-            }
+            _offer(
+                r.get("source") or "Unknown",
+                r.get("title") or query,
+                price,
+                r.get("price") or "",
+                r.get("product_link") or r.get("link") or "",
+                r.get("thumbnail"),
+                r.get("rating"),
+                r.get("reviews"),
+                r.get("delivery"),
+                True,
+                None,
+            )
         )
-    offers.sort(key=lambda o: ((0 if o["inStock"] else 1), o["price"]))
-    return offers[:limit]
+    return _finalize(offers, query, limit)
 
 
-def _search_with_fallback(query: str, region: str, limit: int = 8) -> tuple[list[dict], str]:
-    offers = _search_offers(query, region, limit)
+def _search_with_fallback(query: str, region: str, limit: int = 12) -> tuple[list[dict], str]:
+    if region == "bd":
+        offers = _search_daraz(query, limit)
+        if offers:
+            return offers, "bd"
+    offers = _search_serpapi(query, region, limit)
     if offers:
         return offers, region
     if region != "us":
-        offers = _search_offers(query, "us", limit)
+        offers = _search_serpapi(query, "us", limit)
         if offers:
             return offers, "us"
     return [], region
@@ -91,6 +242,38 @@ def _currency_of(offer: dict | None, region: str) -> str:
     if m:
         return m.group(0).strip()
     return "৳" if region == "bd" else "$"
+
+
+@router.get("/search")
+def search(q: str, user: UserOut = Depends(current_user)):
+    query = (q or "").strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="Enter something to search.")
+    region = settings.shopping_region
+    products, used_region = _search_with_fallback(query, region)
+    currency = _currency_of(products[0] if products else None, used_region)
+    savings = sum(
+        (p["original"] - p["price"]) for p in products if p.get("original") and p["original"] > p["price"]
+    )
+    return {
+        "query": query,
+        "category": _category(query),
+        "currency": currency,
+        "region": used_region,
+        "count": len(products),
+        "potentialSavings": round(savings),
+        "products": products,
+    }
+
+
+class AdviseIn(BaseModel):
+    product: str = Field(min_length=1, max_length=120)
+    price: float | None = None
+    budget: float | None = None
+    link: str | None = None
+    context: str = ""
+    region: str | None = None
+    maxAlternatives: int = Field(default=2, ge=0, le=3)
 
 
 def _ai_verdict(product: str, price_str: str, budget, context: str) -> dict | None:
@@ -146,9 +329,6 @@ def _ai_verdict(product: str, price_str: str, budget, context: str) -> dict | No
 
 @router.post("/advise")
 def advise(body: AdviseIn, user: UserOut = Depends(current_user)):
-    if not settings.serpapi_key:
-        raise HTTPException(status_code=503, detail="Shopping search is not configured on the server.")
-
     region = body.region or settings.shopping_region
     offers, used_region = _search_with_fallback(body.product, region)
     best = offers[0] if offers else None

@@ -56,6 +56,17 @@ export type ShopOffer = {
   reviews?: number | null;
   delivery: string;
   inStock: boolean;
+  original?: number | null;
+  discountPct?: number;
+};
+export type SearchResult = {
+  query: string;
+  category: string;
+  currency: string;
+  region: string;
+  count: number;
+  potentialSavings: number;
+  products: ShopOffer[];
 };
 export type ShopAlternative = {
   name: string;
@@ -194,6 +205,9 @@ export const api = {
   },
 
   shopping: {
+    search: (token: string, q: string) =>
+      request<SearchResult>(`/shopping/search?q=${encodeURIComponent(q)}`, { token }),
+
     advise: (
       token: string,
       body: { product: string; price?: number; budget?: number; link?: string; context?: string },
