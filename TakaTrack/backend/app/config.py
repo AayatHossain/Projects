@@ -16,8 +16,5 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
 
-    serpapi_key: str = ""
-    shopping_region: str = "bd"
-
 
 settings = Settings()
