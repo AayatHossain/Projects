@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 
-import { api, Arcade, Category, Expense, Goal, Overview, Pending } from './api';
+import { api, Arcade, Category, Expense, Goal, Overview, Pending, Transaction } from './api';
 import { useAuth } from './auth';
 import { notifyTransaction, setupNotifications } from './notify';
 import { RawSms, sampleSms, scanSms } from './sms';
@@ -15,6 +15,7 @@ type DataState = {
   goals: Goal[];
   arcade: Arcade;
   pending: Pending[];
+  transactions: Transaction[];
   refresh: () => Promise<void>;
   spentForCategory: (key: string) => number;
   totalSpent: () => number;
@@ -52,6 +53,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [arcade, setArcade] = useState<Arcade>(EMPTY_ARCADE);
   const [pending, setPending] = useState<Pending[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   function apply(o: Overview) {
     setIncomeState(o.income);
@@ -60,6 +62,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setGoals(o.goals ?? []);
     setArcade(o.arcade ?? EMPTY_ARCADE);
     setPending(o.pending ?? []);
+    setTransactions(o.transactions ?? []);
   }
 
   async function ingest(messages: RawSms[]) {
@@ -139,6 +142,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     goals,
     arcade,
     pending,
+    transactions,
     refresh,
     spentForCategory,
     totalSpent,

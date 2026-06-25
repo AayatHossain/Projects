@@ -21,6 +21,19 @@ export type Goal = {
   perDay: number;
 };
 export type Arcade = { points: number; done: Record<string, boolean> };
+export type Transaction = {
+  id: string;
+  type: 'income' | 'expense' | 'sent' | 'saving';
+  direction: 'in' | 'out';
+  amount: number;
+  label: string;
+  note: string;
+  provider: string;
+  catLabel: string;
+  goalName: string;
+  source: string;
+  ts: number;
+};
 export type Pending = {
   id: string;
   trxId: string;
@@ -43,6 +56,7 @@ export type Overview = {
   goals: Goal[];
   arcade: Arcade;
   pending: Pending[];
+  transactions: Transaction[];
 };
 
 export class ApiError extends Error {}

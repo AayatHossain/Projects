@@ -72,6 +72,7 @@ function TabsNav() {
         <Tabs.Screen name="account" options={{ href: null }} />
         <Tabs.Screen name="insights" options={{ href: null }} />
         <Tabs.Screen name="quiz" options={{ href: null }} />
+        <Tabs.Screen name="transactions" options={{ href: null }} />
       </Tabs>
   );
 }

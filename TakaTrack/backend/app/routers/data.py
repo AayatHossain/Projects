@@ -136,6 +136,24 @@ def _dedup_key(sender: str, body: str, parsed: dict) -> str:
     return "h_" + hashlib.sha1(base.encode("utf-8")).hexdigest()[:24]
 
 
+def _log_txn(uid: str, ttype: str, direction: str, amount: float, label: str, **extra) -> dict:
+    tid = uuid.uuid4().hex
+    entry = {
+        "type": ttype,
+        "direction": direction,
+        "amount": float(amount or 0),
+        "label": label or "",
+        "note": extra.get("note", ""),
+        "provider": extra.get("provider", ""),
+        "catLabel": extra.get("catLabel", ""),
+        "goalName": extra.get("goalName", ""),
+        "source": extra.get("source", "manual"),
+        "ts": int(extra.get("ts") or time.time() * 1000),
+    }
+    ref(f"{_root(uid)}/transactions/{tid}").set(entry)
+    return {"id": tid, **entry}
+
+
 @router.get("/overview")
 def overview(user: UserOut = Depends(current_user)):
     _seed_if_empty(user.uid)
@@ -148,6 +166,22 @@ def overview(user: UserOut = Depends(current_user)):
     arcade = root.get("arcade", {"points": 0, "done": {}})
     pending = _list_with_ids(root.get("pending"))
     pending.sort(key=lambda e: e.get("ts", 0), reverse=True)
+
+    if root.get("transactions") is None and expenses:
+        for e in expenses:
+            _log_txn(
+                user.uid,
+                "expense",
+                "out",
+                e.get("amt", 0),
+                e.get("note") or e.get("catLabel", ""),
+                catLabel=e.get("catLabel", ""),
+                source="manual",
+                ts=e.get("ts"),
+            )
+    transactions = _list_with_ids(ref(f"{_root(user.uid)}/transactions").get())
+    transactions.sort(key=lambda t: t.get("ts", 0), reverse=True)
+
     return {
         "income": budget.get("income", DEFAULT_INCOME),
         "categories": categories,
@@ -155,6 +189,7 @@ def overview(user: UserOut = Depends(current_user)):
         "goals": goals,
         "arcade": arcade,
         "pending": pending,
+        "transactions": transactions,
     }
 
 
@@ -188,6 +223,16 @@ def add_expense(body: ExpenseIn, user: UserOut = Depends(current_user)):
         "ts": int(time.time() * 1000),
     }
     ref(f"{_root(user.uid)}/expenses/{eid}").set(entry)
+    _log_txn(
+        user.uid,
+        "expense",
+        "out",
+        body.amt,
+        entry["note"] or body.catLabel,
+        catLabel=body.catLabel,
+        source="manual",
+        ts=entry["ts"],
+    )
     return {"id": eid, **entry}
 
 
@@ -234,6 +279,15 @@ def deposit(gid: str, body: DepositIn, user: UserOut = Depends(current_user)):
         raise HTTPException(status_code=404, detail="Goal not found.")
     saved = min(node["target"], node.get("saved", 0) + body.amount)
     ref(f"{_root(user.uid)}/goals/{gid}/saved").set(saved)
+    _log_txn(
+        user.uid,
+        "saving",
+        "out",
+        body.amount,
+        node.get("name", "Goal"),
+        goalName=node.get("name", ""),
+        source="manual",
+    )
     return {"id": gid, **node, "saved": saved}
 
 
@@ -306,6 +360,19 @@ def categorize_pending(pid: str, body: CategorizeIn, user: UserOut = Depends(cur
         "ts": int(node.get("ts") or time.time() * 1000),
     }
     ref(f"{root}/expenses/{eid}").set(entry)
+    kind = node.get("kind") or "transaction"
+    _log_txn(
+        user.uid,
+        "sent" if kind == "send_money" else "expense",
+        "out",
+        entry["amt"],
+        node.get("counterparty") or body.catLabel,
+        catLabel=body.catLabel,
+        provider=node.get("provider", ""),
+        note=entry["note"],
+        source="sms",
+        ts=entry["ts"],
+    )
     ref(f"{root}/pending/{pid}").delete()
     return {"expense": {"id": eid, **entry}}
 
@@ -321,6 +388,18 @@ def save_pending_to_goal(pid: str, body: SaveGoalIn, user: UserOut = Depends(cur
         raise HTTPException(status_code=404, detail="Goal not found.")
     saved = min(goal["target"], goal.get("saved", 0) + float(node.get("amount") or 0))
     ref(f"{root}/goals/{body.goalId}/saved").set(saved)
+    _log_txn(
+        user.uid,
+        "income",
+        "in",
+        float(node.get("amount") or 0),
+        node.get("counterparty") or "Received",
+        provider=node.get("provider", ""),
+        goalName=goal.get("name", ""),
+        note=f"Saved to {goal.get('name', '')}",
+        source="sms",
+        ts=node.get("ts"),
+    )
     ref(f"{root}/pending/{pid}").delete()
     return {"goal": {"id": body.goalId, **goal, "saved": saved}}
 

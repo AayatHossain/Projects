@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useRouter } from 'expo-router';
+
 import { CATEGORY_GROUPS } from '../../src/content';
 import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
@@ -21,6 +23,7 @@ import { Card, Divider, ScreenTitle, SectionTitle } from '../../src/ui';
 type Selected = { catKey: string; catLabel: string; note: string };
 
 export default function ExpensesScreen() {
+  const router = useRouter();
   const { t, catLabel, itemLabel, fmtN } = useLang();
   const { expenses, logExpense, deleteExpense } = useData();
   const [selected, setSelected] = useState<Selected | null>(null);
@@ -85,7 +88,15 @@ export default function ExpensesScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <ScreenTitle title={t('expenses.title')} subtitle={t('expenses.subtitle')} />
+          <ScreenTitle
+            title={t('expenses.title')}
+            subtitle={t('expenses.subtitle')}
+            right={
+              <Pressable style={styles.histBtn} onPress={() => router.push('/transactions')}>
+                <Text style={styles.histText}>{t('expenses.viewAll')}</Text>
+              </Pressable>
+            }
+          />
 
           <Card>
             <Text style={styles.enterHeading}>{t('expenses.enterDetails')}</Text>
@@ -209,6 +220,8 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
   scroll: { padding: 14, paddingBottom: 24 },
+  histBtn: { backgroundColor: colors.tealTint, borderWidth: 1, borderColor: colors.tealTint2, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
+  histText: { fontSize: 12, fontWeight: '800', color: colors.tealDeep },
   title: { fontSize: 24, fontWeight: '800', color: colors.ink, marginBottom: 12, marginTop: 4 },
   enterHeading: { fontSize: 18, fontWeight: '800', color: colors.ink, letterSpacing: -0.2 },
   headingDivider: { marginTop: 12, marginBottom: 2 },
