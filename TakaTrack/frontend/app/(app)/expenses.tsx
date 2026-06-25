@@ -3,7 +3,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,7 +15,7 @@ import { CATEGORY_GROUPS } from '../../src/content';
 import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Card, Divider, ScreenTitle, SectionTitle } from '../../src/ui';
+import { Card, Divider, PressableScale as Pressable, ScreenTitle, SectionTitle } from '../../src/ui';
 
 type Selected = { catKey: string; catLabel: string; note: string };
 

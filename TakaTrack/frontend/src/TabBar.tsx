@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useData } from './data';
@@ -9,6 +9,44 @@ import { colors, shadow } from './theme';
 
 type Glyph = keyof typeof Ionicons.glyphMap;
 type Item = { path: string; label: string; active: Glyph; inactive: Glyph; badge?: boolean };
+
+function TabButton({
+  icon,
+  label,
+  active,
+  badge,
+  onPress,
+}: {
+  icon: Glyph;
+  label: string;
+  active: boolean;
+  badge?: number;
+  onPress: () => void;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const color = active ? colors.teal : colors.muted;
+  const handle = () => {
+    scale.setValue(1);
+    Animated.sequence([
+      Animated.timing(scale, { toValue: 1.3, duration: 130, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, friction: 4, tension: 120, useNativeDriver: true }),
+    ]).start();
+    onPress();
+  };
+  return (
+    <Pressable style={styles.tab} onPress={handle}>
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <Ionicons name={icon} size={22} color={color} />
+        {badge ? (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badge}</Text>
+          </View>
+        ) : null}
+      </Animated.View>
+      <Text style={[styles.label, { color }]}>{label}</Text>
+    </Pressable>
+  );
+}
 
 const PRIMARY: Item[] = [
   { path: '/', label: 'Home', active: 'home', inactive: 'home-outline' },
@@ -42,7 +80,6 @@ export function AppTabBar() {
   };
 
   const overflowActive = OVERFLOW.some((i) => isActive(i.path, pathname));
-  const moreColor = overflowActive || open ? colors.teal : colors.muted;
 
   return (
     <>
@@ -67,25 +104,23 @@ export function AppTabBar() {
       <View style={[styles.bar, { height: 64 + insets.bottom, paddingBottom: 8 + insets.bottom }]}>
         {PRIMARY.map((it) => {
           const on = isActive(it.path, pathname);
-          const color = on ? colors.teal : colors.muted;
           return (
-            <Pressable key={it.path} style={styles.tab} onPress={() => go(it.path)}>
-              <View>
-                <Ionicons name={on ? it.active : it.inactive} size={22} color={color} />
-                {it.badge && pending.length > 0 ? (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{pending.length}</Text>
-                  </View>
-                ) : null}
-              </View>
-              <Text style={[styles.label, { color }]}>{it.label}</Text>
-            </Pressable>
+            <TabButton
+              key={it.path}
+              icon={on ? it.active : it.inactive}
+              label={it.label}
+              active={on}
+              badge={it.badge && pending.length > 0 ? pending.length : undefined}
+              onPress={() => go(it.path)}
+            />
           );
         })}
-        <Pressable style={styles.tab} onPress={() => setOpen((o) => !o)}>
-          <Ionicons name="ellipsis-horizontal" size={22} color={moreColor} />
-          <Text style={[styles.label, { color: moreColor }]}>More</Text>
-        </Pressable>
+        <TabButton
+          icon="ellipsis-horizontal"
+          label="More"
+          active={overflowActive || open}
+          onPress={() => setOpen((o) => !o)}
+        />
       </View>
     </>
   );

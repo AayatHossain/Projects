@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Pending } from '../../src/api';
@@ -7,7 +7,7 @@ import { CATEGORY_GROUPS } from '../../src/content';
 import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Card, ScreenTitle } from '../../src/ui';
+import { Card, PressableScale as Pressable, ScreenTitle } from '../../src/ui';
 
 function PendingCard({ item }: { item: Pending }) {
   const { t, catLabel, goalLabel, fmtN, formatDate } = useLang();

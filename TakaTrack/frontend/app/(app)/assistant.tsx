@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +18,7 @@ import { useAuth } from '../../src/auth';
 import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
+import { PressableScale } from '../../src/ui';
 
 export default function AssistantScreen() {
   const { t, language } = useLang();
@@ -106,9 +108,9 @@ export default function AssistantScreen() {
           {turns.length === 0 && !busy && (
             <View style={styles.suggestions}>
               {suggestions.map((s) => (
-                <Pressable key={s} style={styles.chip} onPress={() => setInput(s)}>
+                <PressableScale key={s} style={styles.chip} onPress={() => setInput(s)}>
                   <Text style={styles.chipText}>{s}</Text>
-                </Pressable>
+                </PressableScale>
               ))}
             </View>
           )}
@@ -124,12 +126,12 @@ export default function AssistantScreen() {
             multiline
             onSubmitEditing={send}
           />
-          <Pressable
+          <PressableScale
             style={[styles.sendBtn, (!input.trim() || busy) && styles.sendBtnOff]}
             onPress={send}
             disabled={!input.trim() || busy}>
             <Text style={styles.sendIcon}>↑</Text>
-          </Pressable>
+          </PressableScale>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -138,10 +140,30 @@ export default function AssistantScreen() {
 
 function Bubble({ role, text }: { role: 'user' | 'model'; text: string }) {
   const isUser = role === 'user';
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 320,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [anim]);
   return (
-    <View style={[styles.bubble, isUser ? styles.userBubble : styles.modelBubble]}>
-      <Text style={[styles.bubbleText, isUser && styles.userText]}>{text}</Text>
-    </View>
+    <Animated.View
+      style={{
+        opacity: anim,
+        transform: [
+          { translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) },
+          { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
+        ],
+        alignSelf: isUser ? 'flex-end' : 'flex-start',
+        maxWidth: '86%',
+      }}>
+      <View style={[styles.bubble, isUser ? styles.userBubble : styles.modelBubble, styles.bubbleFull]}>
+        <Text style={[styles.bubbleText, isUser && styles.userText]}>{text}</Text>
+      </View>
+    </Animated.View>
   );
 }
 
@@ -155,6 +177,7 @@ const styles = StyleSheet.create({
   scroll: { padding: 14, paddingBottom: 18 },
 
   bubble: { maxWidth: '86%', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 10 },
+  bubbleFull: { maxWidth: '100%' },
   userBubble: { alignSelf: 'flex-end', backgroundColor: colors.teal, borderBottomRightRadius: 4 },
   modelBubble: { alignSelf: 'flex-start', backgroundColor: '#fff', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: colors.line },
   bubbleText: { fontSize: 14.5, lineHeight: 21, color: colors.ink2 },

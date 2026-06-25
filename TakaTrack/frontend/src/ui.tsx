@@ -1,8 +1,73 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import {
+  Animated,
+  Easing,
+  Pressable,
+  PressableProps,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 import { colors, radius, shadow } from './theme';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+export function PressableScale({ style, onPress, disabled, ...rest }: PressableProps) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const pop = () => {
+    scale.setValue(1);
+    Animated.sequence([
+      Animated.timing(scale, { toValue: 1.08, duration: 110, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, friction: 4, tension: 140, useNativeDriver: true }),
+    ]).start();
+  };
+  const flat = typeof style === 'function' ? (style as (s: { pressed: boolean }) => StyleProp<ViewStyle>)({ pressed: false }) : style;
+  return (
+    <AnimatedPressable
+      {...rest}
+      disabled={disabled}
+      onPress={(e) => {
+        if (!disabled) pop();
+        onPress?.(e);
+      }}
+      style={[flat as StyleProp<ViewStyle>, { transform: [{ scale }] }]}
+    />
+  );
+}
+
+export function FadeSlideIn({
+  children,
+  delay = 0,
+  from = 16,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  from?: number;
+}) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 420,
+      delay,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [anim, delay]);
+  return (
+    <Animated.View
+      style={{
+        opacity: anim,
+        transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [from, 0] }) }],
+      }}>
+      {children}
+    </Animated.View>
+  );
+}
 
 export const fmt = (n: number) =>
   Math.round(n)

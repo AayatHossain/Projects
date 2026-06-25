@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   Alert,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,7 +14,7 @@ import { GOAL_TEMPLATES } from '../../src/content';
 import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Bar, Card, ScreenTitle } from '../../src/ui';
+import { Bar, Card, PressableScale as Pressable, ScreenTitle } from '../../src/ui';
 
 const ICONS = ['🎯', '🛍️', '🛡️', '🏠', '📱', '🚗', '🎓', '💍', '🕋', '✈️', '🏢', '🏡'];
 

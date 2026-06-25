@@ -1,14 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { coursesFor } from '../../src/coursesBn';
 import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Bar, Card, ScreenTitle } from '../../src/ui';
+import { Bar, Card, PressableScale as Pressable, ScreenTitle } from '../../src/ui';
 
 const lecId = (course: string, i: number) => `lec:${course}:${i}`;
 const quizId = (course: string, i: number) => `quiz:${course}:${i}`;

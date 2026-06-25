@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -19,7 +18,7 @@ import { useAuth } from '../../src/auth';
 import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Bar, Card, Ring, ringColor, SectionTitle } from '../../src/ui';
+import { Bar, Card, PressableScale, PressableScale as Pressable, Ring, ringColor, SectionTitle } from '../../src/ui';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -165,7 +164,7 @@ export default function HomeScreen() {
         <Card style={styles.ai}>
           <View style={styles.aiHeader}>
             <Text style={styles.aiTag}>{t('home.aiInsight')}</Text>
-            <Pressable
+            <PressableScale
               onPress={newInsight}
               disabled={insightLoading}
               hitSlop={8}
@@ -175,9 +174,9 @@ export default function HomeScreen() {
               ) : (
                 <Text style={styles.reloadIcon}>↻</Text>
               )}
-            </Pressable>
+            </PressableScale>
           </View>
-          <FadeSwap trigger={insightError ?? insight ?? 'loading'}>
+          <View>
             {insightError ? (
               <Text style={[styles.aiText, { color: colors.red }]}>⚠️ {insightError}</Text>
             ) : insight ? (
@@ -187,7 +186,7 @@ export default function HomeScreen() {
                 {t('home.readingFinances')}
               </Text>
             )}
-          </FadeSwap>
+          </View>
           <Pressable style={styles.seeMoreBtn} onPress={() => router.push('/insights')}>
             <Text style={styles.seeMoreText}>{t('home.seeMore')}</Text>
             <Text style={styles.seeMoreArrow}>›</Text>
@@ -286,20 +285,6 @@ function FadeInUp({ children, delay = 0 }: { children: React.ReactNode; delay?: 
       {children}
     </Animated.View>
   );
-}
-
-function FadeSwap({ children, trigger }: { children: React.ReactNode; trigger: string }) {
-  const anim = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    anim.setValue(0);
-    Animated.timing(anim, {
-      toValue: 1,
-      duration: 350,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [trigger, anim]);
-  return <Animated.View style={{ opacity: anim }}>{children}</Animated.View>;
 }
 
 const styles = StyleSheet.create({

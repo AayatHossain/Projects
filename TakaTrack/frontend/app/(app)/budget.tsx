@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Category } from '../../src/api';
 import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Bar, Card, Ring, ringColor, ScreenTitle, SectionTitle } from '../../src/ui';
+import { Bar, Card, PressableScale as Pressable, Ring, ringColor, ScreenTitle, SectionTitle } from '../../src/ui';
 
 const DEFAULT_ALLOC: Record<string, number> = {
   food: 9000,

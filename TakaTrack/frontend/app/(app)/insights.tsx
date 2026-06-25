@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { generateInsights } from '../../src/ai';
@@ -9,7 +9,7 @@ import { useAuth } from '../../src/auth';
 import { useData } from '../../src/data';
 import { useLang } from '../../src/i18n';
 import { colors } from '../../src/theme';
-import { Card } from '../../src/ui';
+import { Card, FadeSlideIn, PressableScale, PressableScale as Pressable } from '../../src/ui';
 
 export default function InsightsScreen() {
   const router = useRouter();
@@ -18,6 +18,7 @@ export default function InsightsScreen() {
   const { income, categories, expenses, goals, arcade, spentForCategory, totalSpent } = useData();
 
   const [items, setItems] = useState<string[]>([]);
+  const [gen, setGen] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +33,7 @@ export default function InsightsScreen() {
         language,
       );
       setItems(list);
+      setGen((g) => g + 1);
     } catch (e) {
       setError(e instanceof Error ? e.message : t('insights.error'));
     } finally {
@@ -65,16 +67,18 @@ export default function InsightsScreen() {
           </View>
         ) : (
           items.map((text, i) => (
-            <Card key={i} style={styles.card}>
-              <View style={styles.numberDot}>
-                <Text style={styles.numberText}>{i + 1}</Text>
-              </View>
-              <Text style={styles.cardText}>{text}</Text>
-            </Card>
+            <FadeSlideIn key={`${gen}-${i}`} delay={i * 90} from={22}>
+              <Card style={styles.card}>
+                <View style={styles.numberDot}>
+                  <Text style={styles.numberText}>{i + 1}</Text>
+                </View>
+                <Text style={styles.cardText}>{text}</Text>
+              </Card>
+            </FadeSlideIn>
           ))
         )}
 
-        <Pressable
+        <PressableScale
           style={[styles.genBtn, loading && { opacity: 0.6 }]}
           onPress={generate}
           disabled={loading}>
@@ -86,7 +90,7 @@ export default function InsightsScreen() {
               <Text style={styles.genBtnText}>{t('insights.generate')}</Text>
             </>
           )}
-        </Pressable>
+        </PressableScale>
       </ScrollView>
     </SafeAreaView>
   );

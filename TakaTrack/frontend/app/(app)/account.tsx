@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../src/auth';
 import { useData } from '../../src/data';
 import { colors } from '../../src/theme';
-import { Card, fmt, SectionTitle } from '../../src/ui';
+import { Card, fmt, PressableScale as Pressable, SectionTitle } from '../../src/ui';
 
 export default function AccountScreen() {
   const router = useRouter();

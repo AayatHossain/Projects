@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../src/auth';
 import { colors } from '../../src/theme';
+import { PressableScale as Pressable } from '../../src/ui';
 
 export default function LoginScreen() {
   const { login } = useAuth();
