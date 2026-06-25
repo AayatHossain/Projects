@@ -86,6 +86,7 @@ export async function generateInsight(
     `You are the financial assistant for TakaTrack, a budgeting app used in Bangladesh (currency Bangladeshi Taka, ৳).`,
     `Write ONE proactive insight for the home screen: a single tip, observation, or encouragement based on the snapshot below.`,
     `Rules: 1-2 sentences, max ~35 words. Be specific and use the user's real numbers. Friendly and practical. No greeting, no preamble, no markdown — just the insight sentence. If data is thin, give a useful general budgeting nudge.`,
+    `Always write money with the ৳ sign (e.g. ৳500); never use "Tk", "TK", "BDT", "₹", "₳" or any other currency symbol.`,
     `Write the insight in ${language}.`,
     ``,
     buildSnapshot(d),
@@ -96,10 +97,50 @@ export async function generateInsight(
       ? `Give me a different insight from a fresh angle. Do NOT repeat the meaning of these:\n${avoid.map((a) => `- ${a}`).join('\n')}`
       : `Give me an insight.`;
 
-  return askAI(token, [{ role: 'user', text: ask }], system, {
+  const text = await askAI(token, [{ role: 'user', text: ask }], system, {
     temperature: 1.0,
     maxOutputTokens: 200,
   });
+  return normalizeCurrency(text);
+}
+
+export function normalizeCurrency(s: string): string {
+  return s
+    .replace(/[₹₨₳﷼₴₦]/g, '৳')
+    .replace(/à§³|â‚³|â‚¹|Ã·|â‚¨/g, '৳')
+    .replace(/\b(?:BDT|Tk|TK)\.?\s?(?=\d)/g, '৳')
+    .replace(/৳\s+(?=\d)/g, '৳')
+    .trim();
+}
+
+function parseInsightList(text: string, count: number): string[] {
+  const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+  const start = cleaned.indexOf('[');
+  const end = cleaned.lastIndexOf(']');
+  if (start !== -1 && end > start) {
+    try {
+      const arr = JSON.parse(cleaned.slice(start, end + 1));
+      if (Array.isArray(arr)) {
+        const items = arr.map((x) => String(x).trim()).filter(Boolean);
+        if (items.length > 0) return items.slice(0, count).map(normalizeCurrency);
+      }
+    } catch {}
+  }
+
+  let parts = cleaned
+    .split('\n')
+    .map((l) => l.replace(/^\s*(\d+[.)]|[-•*])\s*/, '').trim())
+    .filter(Boolean);
+
+  if (parts.length <= 1) {
+    parts = cleaned
+      .split(/\s*(?:\d+[.)]|[-•*])\s+/)
+      .map((s) => s.replace(/^["'\s]+|["',\s]+$/g, '').trim())
+      .filter(Boolean);
+  }
+
+  return parts.slice(0, count).map(normalizeCurrency);
 }
 
 export async function generateInsights(
@@ -113,20 +154,17 @@ export async function generateInsights(
     `You are the financial assistant for TakaTrack, a budgeting app used in Bangladesh (currency Bangladeshi Taka, ৳).`,
     `Write ${count} DIFFERENT proactive insights based on the snapshot below — each a tip, observation, or encouragement covering a different angle (spending, a specific category, a savings goal, budget balance, a habit).`,
     `Rules per insight: 1-2 sentences, max ~35 words, specific and using the user's real numbers, friendly and practical. No markdown.`,
-    `Output format: exactly ${count} insights, ONE per line, with NO numbering, bullets, or blank lines between them.`,
-    `Write everything in ${language}.`,
+    `Always write money with the ৳ sign (e.g. ৳500); never use "Tk", "TK", "BDT", "₹", "₳" or any other currency symbol.`,
+    `Reply with ONLY a JSON array of exactly ${count} strings, like ["first insight", "second insight"]. No object keys, no extra text, no code fences.`,
+    `Write each insight in ${language}.`,
     ``,
     buildSnapshot(d),
   ].join('\n');
 
-  const text = await askAI(token, [{ role: 'user', text: `Give me ${count} insights.` }], system, {
-    temperature: 1.0,
-    maxOutputTokens: 500,
+  const text = await askAI(token, [{ role: 'user', text: `Give me ${count} insights as a JSON array.` }], system, {
+    temperature: 0.8,
+    maxOutputTokens: 700,
   });
 
-  return text
-    .split('\n')
-    .map((l) => l.replace(/^\s*(\d+[.)]|[-•*])\s*/, '').trim())
-    .filter(Boolean)
-    .slice(0, count);
+  return parseInsightList(text, count);
 }
